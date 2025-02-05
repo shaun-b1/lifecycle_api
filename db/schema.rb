@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_02_04_121335) do
+ActiveRecord::Schema[8.0].define(version: 2025_02_05_153835) do
   create_table "bicycles", force: :cascade do |t|
     t.string "name"
     t.string "brand"
@@ -18,7 +18,17 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_04_121335) do
     t.integer "user_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.float "kilometres"
     t.index ["user_id"], name: "index_bicycles_on_user_id"
+  end
+
+  create_table "chains", force: :cascade do |t|
+    t.string "brand"
+    t.float "kilometres"
+    t.integer "bicycle_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["bicycle_id"], name: "index_chains_on_bicycle_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -29,4 +39,5 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_04_121335) do
   end
 
   add_foreign_key "bicycles", "users"
+  add_foreign_key "chains", "bicycles"
 end

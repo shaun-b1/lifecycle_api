@@ -9,7 +9,9 @@ Rails.application.routes.draw do
     namespace :v1 do
       get "/dashboard", to: "users#index"
       get "/users/:id", to: "users#show"
-      resources :bicycles
+      resources :bicycles do
+        resources :chains, only: [ :create ]
+      end
     end
   end
 
