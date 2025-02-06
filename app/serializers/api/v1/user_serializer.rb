@@ -3,7 +3,7 @@ module Api
     class UserSerializer < ActiveModel::Serializer
       attributes :id, :name, :email
 
-      has_many :bicycles
+      has_many :bicycles, serializer: Api::V1::BicycleSerializer
     end
   end
 end

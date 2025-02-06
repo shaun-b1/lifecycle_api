@@ -3,7 +3,7 @@ class Api::V1::BicyclesController < ApplicationController
 
 
   def show
-    render json: @bicycle
+    render json: @bicycle, serializer: ::Api::V1::BicycleSerializer
   end
 
   def create
@@ -32,10 +32,10 @@ class Api::V1::BicyclesController < ApplicationController
   private
 
   def set_bicycle
-    @bicycle = Bicycle.find(params[:id])
+    @bicycle = Bicycle.includes(:chain).find(params[:id])
   end
 
   def bicycle_params
-    params.require(:bicycle).permit(:name, :brand, :model, :kilometers, :user_id)
+    params.require(:bicycle).permit(:name, :brand, :model, :kilometres, :user_id)
   end
 end

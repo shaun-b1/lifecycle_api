@@ -2,12 +2,12 @@ class Api::V1::UsersController < ApplicationController
   before_action :set_user, only: %i[ show update destroy ]
 
   def index
-    @users = User.all
-    render json: @users, each_serializer: ::Api::V1::UserSerializer
+    @users = User.includes(bicycles: :chain)
+    render json: @users, each_serializer: ::Api::V1::UserSerializer, scope: :dashboard
   end
 
   def show
-    render json: @user, serializer: ::Api::V1::UserSerializer
+    render json: @user, serializer: ::Api::V1::UserSerializer, scope: :dashboard
   end
 
   def create
@@ -39,7 +39,7 @@ class Api::V1::UsersController < ApplicationController
   private
 
   def set_user
-    @user = User.includes(:bicycles).find(params[:id])
+    @user = User.includes(bicycles: :chain).find(params[:id])
   end
 
   def user_params

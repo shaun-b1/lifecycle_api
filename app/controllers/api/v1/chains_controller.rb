@@ -1,7 +1,7 @@
 class Api::V1::ChainController < ApplicationController
   def create
     @bicycle = Bicycle.find(params[:bicycle_id])
-    @chain = @bicycle.chains.build(chain_params)
+    @chain = @bicycle.build_chain(chain_params)
 
     if @chain.save
       render json: @chain, status: :created
@@ -13,6 +13,6 @@ class Api::V1::ChainController < ApplicationController
   private
 
   def chain_params
-    params.require(:chain).permit(:brand, :kilometers_ridden)
+    params.require(:chain).permit(:brand, :kilometres)
   end
 end
