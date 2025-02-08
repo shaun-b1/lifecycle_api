@@ -7,11 +7,8 @@ Rails.application.routes.draw do
 
   namespace :api do
     namespace :v1 do
-      get "/dashboard", to: "users#index"
-      get "/users/:id", to: "users#show"
-      resources :bicycles do
-        resources :chains, only: [ :create ]
-      end
+      resources :users, only: [ :index, :show, :create, :update, :destroy ]
+      resources :bicycles, only: [ :show, :create, :update, :destroy ]
     end
   end
 

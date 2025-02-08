@@ -39,7 +39,7 @@ class Api::V1::UsersController < ApplicationController
   private
 
   def set_user
-    @user = User.includes(bicycles: :chain).find(params[:id])
+    @user = User.includes(:bicycles).find(params[:id])
   end
 
   def user_params

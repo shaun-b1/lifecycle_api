@@ -1,7 +1,6 @@
 class Api::V1::BicyclesController < ApplicationController
   before_action :set_bicycle, only: %i[ show update destroy ]
 
-
   def show
     render json: @bicycle, serializer: ::Api::V1::BicycleSerializer
   end
@@ -32,7 +31,7 @@ class Api::V1::BicyclesController < ApplicationController
   private
 
   def set_bicycle
-    @bicycle = Bicycle.includes(:chain).find(params[:id])
+    @bicycle = Bicycle.includes(:chain, :cassette, :chainring, :tires, :brakepads).find(params[:id])
   end
 
   def bicycle_params

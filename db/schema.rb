@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_02_05_153835) do
+ActiveRecord::Schema[8.0].define(version: 2025_02_08_194524) do
   create_table "bicycles", force: :cascade do |t|
     t.string "name"
     t.string "brand"
@@ -22,6 +22,33 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_05_153835) do
     t.index ["user_id"], name: "index_bicycles_on_user_id"
   end
 
+  create_table "brakepads", force: :cascade do |t|
+    t.string "brand"
+    t.float "kilometres"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "bicycle_id", null: false
+    t.index ["bicycle_id"], name: "index_brakepads_on_bicycle_id"
+  end
+
+  create_table "cassettes", force: :cascade do |t|
+    t.string "brand"
+    t.float "kilometres"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "bicycle_id", null: false
+    t.index ["bicycle_id"], name: "index_cassettes_on_bicycle_id"
+  end
+
+  create_table "chainrings", force: :cascade do |t|
+    t.string "brand"
+    t.float "kilometres"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "bicycle_id", null: false
+    t.index ["bicycle_id"], name: "index_chainrings_on_bicycle_id"
+  end
+
   create_table "chains", force: :cascade do |t|
     t.string "brand"
     t.float "kilometres"
@@ -29,6 +56,15 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_05_153835) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["bicycle_id"], name: "index_chains_on_bicycle_id"
+  end
+
+  create_table "tires", force: :cascade do |t|
+    t.string "brand"
+    t.float "kilometres"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "bicycle_id", null: false
+    t.index ["bicycle_id"], name: "index_tires_on_bicycle_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -39,5 +75,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_05_153835) do
   end
 
   add_foreign_key "bicycles", "users"
+  add_foreign_key "brakepads", "bicycles"
+  add_foreign_key "cassettes", "bicycles"
+  add_foreign_key "chainrings", "bicycles"
   add_foreign_key "chains", "bicycles"
+  add_foreign_key "tires", "bicycles"
 end
