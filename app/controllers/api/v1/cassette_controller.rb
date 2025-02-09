@@ -1,4 +1,4 @@
-class Api::V1::CassettesController < ApplicationController
+class Api::V1::CassetteController < ApplicationController
   def create
     @bicycle = Bicycle.find(params[:bicycle_id])
     @cassette = @bicycle.build_cassette(cassette_params)
