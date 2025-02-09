@@ -1,4 +1,4 @@
-class Api::V1::ChainController < ApplicationController
+class Api::V1::ChainsController < ApplicationController
   def create
     @bicycle = Bicycle.find(params[:bicycle_id])
     @chain = @bicycle.build_chain(chain_params)
