@@ -2,7 +2,10 @@ class Api::V1::Users::RegistrationsController < Devise::RegistrationsController
   include RackSessionsFix
   respond_to :json
 
+  before_action :configure_devise_mapping
+
   def create
+    Rails.logger.info "Devise mappings: #{Devise.mappings}"
     build_resource(sign_up_params)
 
     if resource.save
@@ -16,6 +19,11 @@ class Api::V1::Users::RegistrationsController < Devise::RegistrationsController
   end
 
   private
+
+  def configure_devise_mapping
+    Rails.logger.info "Before action: Setting Devise mapping for user"
+    request.env["devise.mapping"] = Devise.mappings[:user]
+  end
 
   def sign_up_params
     params.require(:user).permit(:email, :password, :password_confirmation, :name)

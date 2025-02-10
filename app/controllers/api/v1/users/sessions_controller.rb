@@ -2,6 +2,16 @@ class Api::V1::Users::SessionsController < Devise::SessionsController
   include RackSessionsFix
   respond_to :json
 
+  def create
+    user = User.find_by(email: params[:user][:email])
+    if user&.valid_password?(params[:user][:password])
+      sign_in user
+      super
+    else
+      render json: { error: "Invalid credentials" }, status: :unauthorized
+    end
+  end
+
   private
 
   def respond_with(resource, _opts = {})

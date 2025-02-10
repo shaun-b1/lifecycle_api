@@ -5,15 +5,12 @@ Rails.application.routes.draw do
       resources :bicycles, only: [ :show, :create, :update, :destroy ]
 
       devise_for :users,
+        path_names: {
+          registration: "register"
+        },
         controllers: {
           sessions: "api/v1/users/sessions",
           registrations: "api/v1/users/registrations"
-        },
-        path: "users",
-        path_names: {
-          sign_in: "sign_in",
-          sign_out: "sign_out",
-          sign_up: "sign_up"
         }
     end
   end
