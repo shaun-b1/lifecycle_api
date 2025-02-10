@@ -47,3 +47,6 @@ group :development, :test do
 end
 
 gem "active_model_serializers"
+gem "devise"
+gem "devise-jwt"
+gem "jsonapi-serializer"
