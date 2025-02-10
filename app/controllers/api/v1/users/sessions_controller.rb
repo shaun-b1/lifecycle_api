@@ -12,6 +12,18 @@ class Api::V1::Users::SessionsController < Devise::SessionsController
     end
   end
 
+  def destroy
+    if current_user
+      sign_out(current_user)
+      respond_to_on_destroy
+    else
+      render json: {
+        status: 401,
+        message: "No active session found."
+      }, status: :unauthorized
+    end
+  end
+
   private
 
   def respond_with(resource, _opts = {})
@@ -22,16 +34,9 @@ class Api::V1::Users::SessionsController < Devise::SessionsController
   end
 
   def respond_to_on_destroy
-    if current_user
-      render json: {
-        status: 200,
-        message: "Logged out successfully"
-      }, status: :ok
-    else
-      render json: {
-        status: 401,
-        message: "Couldn't find an active session."
-      }, status: :unauthorized
-    end
+    render json: {
+      status: 200,
+      message: "Logged out successfully"
+    }, status: :ok
   end
 end
