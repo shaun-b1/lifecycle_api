@@ -53,7 +53,7 @@ To start the Rails server:
 bin/rails server
 ```
 
-The API will be accessible at http://localhost:3000.
+The API will be accessible at http://localhost:3001.
 
 ## API Endpoints
 
