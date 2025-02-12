@@ -1,17 +1,29 @@
 class Api::V1::Users::RegistrationsController < Devise::RegistrationsController
   include RackSessionsFix
   respond_to :json
+  skip_before_action :authenticate_user!, only: [ :create ]
 
   def create
     build_resource(sign_up_params)
 
     if resource.save
+      jwt_token = request.env["warden-jwt_auth.token"]
       sign_up(resource_name, resource)
-      respond_with resource, location: after_sign_up_path_for(resource)
+      render json: {
+        status: { code: 200, message: "Signed up successfully." },
+        data: {
+          user: Api::V1::UserSerializer.new(resource).as_json,
+          token: jwt_token
+        }
+      }, status: :created
     else
       clean_up_passwords resource
       set_minimum_password_length
-      respond_with resource
+      render json: {
+        status: {
+          message: "User couldn't be created successfully. #{resource.errors.full_messages.to_sentence}"
+        }
+      }, status: :unprocessable_entity
     end
   end
 
@@ -25,7 +37,9 @@ class Api::V1::Users::RegistrationsController < Devise::RegistrationsController
     if resource.persisted?
       render json: {
         status: { code: 200, message: "Signed up successfully." },
-        data: Api::V1::UserSerializer.new(resource)
+        data: {
+          user: Api::V1::UserSerializer.new(resource).as_json
+        }
       }, status: :created
     else
       render json: {

@@ -5,7 +5,7 @@ class User < ApplicationRecord
 
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable, :jwt_authenticatable,
-         jwt_revocation_strategy: Devise::JWT::RevocationStrategies::JTIMatcher
+         jwt_revocation_strategy: self
 
   validates :name, presence: true
   validates :email, presence: true,
@@ -14,14 +14,6 @@ class User < ApplicationRecord
   validates :password, presence: true,
                        length: { minimum: 6 },
                        if: :password_required?
-
-  def generate_jwt
-    JWT.encode(
-      { user_id: id, exp: 7.days.from_now.to_i },
-      Rails.application.credentials.devise_jwt_secret_key,
-      "HS256"
-    )
-  end
 
   private
 

@@ -389,6 +389,7 @@ DEPENDENCIES
   faker
   kamal
   puma (>= 5.0)
+  rack
   rack-cors
   rails (~> 8.0.1)
   rspec-rails (~> 7.0.0)
