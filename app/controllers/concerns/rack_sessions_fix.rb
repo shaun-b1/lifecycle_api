@@ -5,17 +5,15 @@ module RackSessionsFix
     def enabled?
       false
     end
-
-    def destroy; end
   end
 
   included do
-    before_action :set_fake_session
+    before_action :set_fake_rack_session_for_devise
+  end
 
-    private
+  private
 
-    def set_fake_session
-      request.env["rack.session"] ||= FakeRackSession.new
-    end
+  def set_fake_rack_session_for_devise
+    request.env["rack.session"] ||= FakeRackSession.new
   end
 end
