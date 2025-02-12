@@ -49,8 +49,10 @@ group :development, :test do
   gem "rspec-rails", "~> 7.0.0"
   gem "factory_bot_rails"
   gem "faker"
+    gem "pundit-matchers"
 end
 
 gem "active_model_serializers"
 gem "devise"
 gem "devise-jwt"
+gem "pundit"

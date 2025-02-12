@@ -1,6 +1,8 @@
 # This file is copied to spec/ when you run 'rails generate rspec:install'
 require 'spec_helper'
 require 'factory_bot_rails'
+require 'pundit/rspec'
+require 'pundit/matchers'
 ENV['RAILS_ENV'] ||= 'test'
 require_relative '../config/environment'
 # Prevent database truncation if the environment is production
@@ -67,4 +69,18 @@ RSpec.configure do |config|
   # arbitrary gems may also be filtered via:
   # config.filter_gems_from_backtrace("gem name")
   config.include FactoryBot::Syntax::Methods
+  config.include Devise::Test::ControllerHelpers, type: :controller
+  config.include Devise::Test::IntegrationHelpers, type: :request
+
+  # Helper method for JWT auth headers
+  config.include Module.new {
+    def auth_headers(user)
+      token = JWT.encode(
+        { sub: user.id, exp: 24.hours.from_now.to_i },
+        Rails.application.credentials.devise_jwt_secret_key,
+        'HS256'
+      )
+      { 'Authorization' => "Bearer #{token}" }
+    end
+  }
 end
