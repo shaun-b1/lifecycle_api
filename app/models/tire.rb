@@ -1,3 +1,4 @@
 class Tire < ApplicationRecord
-  belongs_to :bicycle
+  include BicycleComponent
+  max_components_per_bicycle 2
 end

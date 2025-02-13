@@ -1,3 +1,5 @@
+require_dependency "bicycle_component"
+
 class Cassette < ApplicationRecord
-  belongs_to :bicycle
+  include BicycleComponent
 end

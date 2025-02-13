@@ -1,0 +1,2 @@
+class ChainPolicy < ComponentPolicy
+end
