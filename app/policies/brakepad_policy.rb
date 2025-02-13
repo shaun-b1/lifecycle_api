@@ -1,0 +1,2 @@
+class BrakepadPolicy < ComponentPolicy
+end

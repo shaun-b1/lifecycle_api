@@ -1,0 +1,2 @@
+class ChainringPolicy < ComponentPolicy
+end
