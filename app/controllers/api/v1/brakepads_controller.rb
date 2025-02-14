@@ -1,4 +1,5 @@
 class Api::V1::BrakepadsController < ApplicationController
+  before_action :set_bicycle
   before_action :set_brakepad, only: %i[show update destroy]
 
   def show
@@ -7,7 +8,7 @@ class Api::V1::BrakepadsController < ApplicationController
   end
 
   def create
-    @brakepad = Brakepad.new(brakepad_params)
+    @brakepad = @bicycle.brakepads.build(brakepad_params)
     authorize @brakepad
 
     if @brakepad.save
@@ -34,11 +35,15 @@ class Api::V1::BrakepadsController < ApplicationController
 
   private
 
+  def set_bicycle
+    @bicycle = Bicycle.find(params[:bicycle_id])
+  end
+
   def set_brakepad
-    @brakepad = Brakepad.find(params[:id])
+    @brakepad = @bicycle.brakepads.find(params[:id])
   end
 
   def brakepad_params
-    params.require(:brakepad).permit(:brand, :kilometres, :bicycle_id)
+    params.require(:brakepad).permit(:brand, :kilometres)
   end
 end

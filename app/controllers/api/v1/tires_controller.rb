@@ -1,4 +1,5 @@
 class Api::V1::TiresController < ApplicationController
+  before_action :set_bicycle
   before_action :set_tire, only: %i[show update destroy]
 
   def show
@@ -7,7 +8,7 @@ class Api::V1::TiresController < ApplicationController
   end
 
   def create
-    @tire = Tire.new(tire_params)
+    @tire = @bicycle.tires.build(tire_params)
     authorize @tire
 
     if @tire.save
@@ -34,8 +35,12 @@ class Api::V1::TiresController < ApplicationController
 
   private
 
+  def set_bicycle
+    @bicycle = Bicycle.find(params[:bicycle_id])
+  end
+
   def set_tire
-    @tire = Tire.find(params[:id])
+    @tire = @bicycle.tires.find(params[:id])
   end
 
   def tire_params

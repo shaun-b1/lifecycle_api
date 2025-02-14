@@ -19,7 +19,7 @@ class Api::V1::BicyclesController < ApplicationController
     if @bicycle.save
       render json: @bicycle, status: :created, serializer: ::Api::V1::BicycleSerializer
     else
-      render json: @bicycle.errors, status: :unprocessable_entity
+      raise ActiveRecord::RecordInvalid.new(@bicycle)
     end
   end
 

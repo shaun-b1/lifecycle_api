@@ -1,4 +1,5 @@
 class Api::V1::ChainsController < ApplicationController
+  before_action :set_bicycle
   before_action :set_chain, only: %i[show update destroy]
 
   def show
@@ -7,7 +8,7 @@ class Api::V1::ChainsController < ApplicationController
   end
 
   def create
-    @chain = Chain.new(chain_params)
+    @chain = @bicycle.build_chain(chain_params)
     authorize @chain
 
     if @chain.save
@@ -34,11 +35,15 @@ class Api::V1::ChainsController < ApplicationController
 
   private
 
+  def set_bicycle
+    @bicycle = Bicycle.find(params[:bicycle_id])
+  end
+
   def set_chain
-    @chain = Chain.find(params[:id])
+    @chain = @bicycle.chain
   end
 
   def chain_params
-    params.require(:chain).permit(:brand, :model, :bicycle_id)
+    params.require(:chain).permit(:brand, :kilometres)
   end
 end

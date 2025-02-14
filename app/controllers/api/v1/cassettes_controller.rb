@@ -1,4 +1,5 @@
 class Api::V1::CassettesController < ApplicationController
+  before_action :set_bicycle
   before_action :set_cassette, only: %i[show update destroy]
 
   def show
@@ -7,7 +8,7 @@ class Api::V1::CassettesController < ApplicationController
   end
 
   def create
-    @cassette = Cassette.new(cassette_params)
+    @cassette = @bicycle.build_cassette(cassette_params)
     authorize @cassette
 
     if @cassette.save
@@ -34,11 +35,15 @@ class Api::V1::CassettesController < ApplicationController
 
   private
 
+  def set_bicycle
+    @bicycle = Bicycle.find(params[:bicycle_id])
+  end
+
   def set_cassette
-    @cassette = Cassette.find(params[:id])
+    @cassette = @bicycle.cassette
   end
 
   def cassette_params
-    params.require(:cassette).permit(:brand, :model, :bicycle_id)
+    params.require(:cassette).permit(:brand, :model)
   end
 end
