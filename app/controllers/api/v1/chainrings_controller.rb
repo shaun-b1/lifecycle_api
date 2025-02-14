@@ -1,4 +1,5 @@
 class Api::V1::ChainringsController < ApplicationController
+  before_action :set_bicycle
   before_action :set_chainring, only: %i[show update destroy]
 
   def show
@@ -7,7 +8,7 @@ class Api::V1::ChainringsController < ApplicationController
   end
 
   def create
-    @chainring = Chainring.new(chainring_params)
+    @chainring = @bicycle.build_chainring(chainring_params)
     authorize @chainring
 
     if @chainring.save
@@ -34,11 +35,15 @@ class Api::V1::ChainringsController < ApplicationController
 
   private
 
+  def set_bicycle
+    @bicycle = Bicycle.find(params[:bicycle_id])
+  end
+
   def set_chainring
-    @chainring = Chainring.find(params[:id])
+    @chainring = @bicycle.chainring
   end
 
   def chainring_params
-    params.require(:chainring).permit(:brand, :model, :bicycle_id)
+    params.require(:chainring).permit(:brand, :model)
   end
 end
