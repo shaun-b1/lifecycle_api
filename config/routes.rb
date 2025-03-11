@@ -4,11 +4,9 @@ Rails.application.routes.draw do
       resources :users, only: [ :index, :show, :update, :destroy ]
 
       resources :bicycles, only: [ :index, :show, :create, :update, :destroy ] do
-        resources :chains, only: [ :show, :create, :update, :destroy ]
-        resources :cassettes, only: [ :show, :create, :update, :destroy ]
-        resources :chainrings, only: [ :show, :create, :update, :destroy ]
-        resources :tires, only: [ :show, :create, :update, :destroy ]
-        resources :brakepads, only: [ :show, :create, :update, :destroy ]
+        %i[chains cassettes chainrings tires brakepads].each do |component|
+          resources component, only: [ :show, :create, :update, :destroy ]
+        end
       end
 
       devise_for :users,
