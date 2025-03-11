@@ -1,4 +1,3 @@
-# app/models/concerns/bicycle_component.rb
 module BicycleComponent
   extend ActiveSupport::Concern
 
