@@ -9,18 +9,7 @@ RSpec.shared_examples "a dual component controller" do |component_type|
 
   context 'when user is authenticated' do
     before do
-      token = JWT.encode(
-        {
-          sub: user.id,
-          exp: 24.hours.from_now.to_i,
-          jti: user.jti
-        },
-        Rails.application.credentials.devise_jwt_secret_key,
-        'HS256'
-      )
-      @request.headers['Authorization'] = "Bearer #{token}"
-      controller.instance_variable_set(:@current_user_id, user.id)
-      controller.instance_variable_set(:@current_user, user)
+      authenticate_user_in_controller(user)
     end
 
     describe "GET #show" do

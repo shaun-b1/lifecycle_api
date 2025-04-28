@@ -6,6 +6,6 @@ class Api::V1::ChainringsController < Api::V1::ComponentsController
   end
 
   def component_serializer
-    ::Api::V1::ChainringSerializer
+    ::Api::V1::ComponentSerializer
   end
 end

@@ -6,6 +6,6 @@ class Api::V1::TiresController < Api::V1::ComponentsController
   end
 
   def component_serializer
-    ::Api::V1::TireSerializer
+    ::Api::V1::ComponentSerializer
   end
 end
