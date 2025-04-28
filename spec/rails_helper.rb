@@ -3,6 +3,7 @@ require 'spec_helper'
 require 'factory_bot_rails'
 require 'pundit/rspec'
 require 'pundit/matchers'
+require './spec/support/auth_helpers.rb'
 ENV['RAILS_ENV'] ||= 'test'
 require_relative '../config/environment'
 # Prevent database truncation if the environment is production
@@ -73,15 +74,7 @@ RSpec.configure do |config|
   config.include Devise::Test::IntegrationHelpers, type: :request
 
   # Helper method for JWT auth headers
-  config.include Module.new {
-    def auth_headers(user)
-      token = JWT.encode(
-        { sub: user.id, exp: 24.hours.from_now.to_i },
-        Rails.application.credentials.devise_jwt_secret_key,
-        'HS256'
-      )
-      { 'Authorization' => "Bearer #{token}" }
-    end
-  }
+  config.include AuthHelpers, type: :request
+  config.include AuthHelpers, type: :controller
 end
 Dir[Rails.root.join('spec', 'support', '**', '*.rb')].sort.each { |f| require f }

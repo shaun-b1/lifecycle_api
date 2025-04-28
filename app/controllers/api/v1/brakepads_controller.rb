@@ -6,6 +6,6 @@ class Api::V1::BrakepadsController < Api::V1::ComponentsController
   end
 
   def component_serializer
-    ::Api::V1::BrakepadSerializer
+    ::Api::V1::ComponentSerializer
   end
 end
