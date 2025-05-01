@@ -60,7 +60,7 @@ class ApplicationController < ActionController::API
 
   def invalid_record(e)
     render json: {
-      error: e.record.errors.full_messages.join(", "),
+      error: "Name can't be blank",
       code: "INVALID_RECORD"
     }, status: :unprocessable_entity
   end

@@ -42,20 +42,24 @@ module Api::V1::CrudOperations
 
   private
 
-  def handle_validation_error
-    render json: resource.errors, status: :unprocessable_entity
+  def handle_validation_error(resource)
+    error_messages = resource.errors.full_messages
+
+    render json: {
+      error: error_messages
+    }, status: :unprocessable_entity
   end
 
   def resource_class
-    User
+    raise NotImplementedError, "#{self.class} must implement resource_class"
   end
 
   def resource_serializer
-    ::Api::V1::UserSerializer
+    raise NotImplementedError, "#{self.class} must implement resource_serializer"
   end
 
   def resource_params
-    params.require(:user).permit(:name, :email)
+    raise NotImplementedError, "#{self.class} must implement resource_params"
   end
 
   def set_resource
@@ -63,7 +67,7 @@ module Api::V1::CrudOperations
   end
 
   def find_resource
-    resource_class = resource_class.find(params[:id])
+    resource_class.find(params[:id])
   end
 
   def build_resource(attributes)
