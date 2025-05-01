@@ -42,14 +42,6 @@ module Api::V1::CrudOperations
 
   private
 
-  def handle_validation_error(resource)
-    error_messages = resource.errors.full_messages
-
-    render json: {
-      error: error_messages
-    }, status: :unprocessable_entity
-  end
-
   def resource_class
     raise NotImplementedError, "#{self.class} must implement resource_class"
   end
@@ -64,6 +56,8 @@ module Api::V1::CrudOperations
 
   def set_resource
     @resource = find_resource
+    rescue ActiveRecord::RecordNotFound
+      raise Api::V1::Errors::ResourceNotFoundError.new(resource_class.name)
   end
 
   def find_resource

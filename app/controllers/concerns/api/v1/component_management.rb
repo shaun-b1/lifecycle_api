@@ -39,16 +39,10 @@ module ::Api::V1::ComponentManagement
 
   private
 
-  def handle_validation_error(resource)
-    error_messages = resource.errors.full_messages
-
-    render json: {
-      error: error_messages
-    }, status: :unprocessable_entity
-  end
-
   def set_bicycle
     @bicycle = Bicycle.find(params[:bicycle_id])
+    rescue ActiveRecord::RecordNotFound
+      raise Api::V1::Errors::ResourceNotFoundError.new("Bicycle")
   end
 
   def component_class
@@ -65,6 +59,8 @@ module ::Api::V1::ComponentManagement
 
   def set_component
     @component = find_component
+    rescue ActiveRecord::RecordNotFound
+      raise Api::V1::Errors::ResourceNotFoundError.new(component_class.name)
   end
 
   def find_component
@@ -85,6 +81,8 @@ module ::Api::V1::ComponentManagement
 
   def component_params
     params.require(component_param_key).permit(:brand, :kilometres)
+    rescue ActionController::ParameterMissing => e
+      raise Api::V1::Errors::ParameterMissingError.new(component_param_key)
   end
 
   def single_component?
