@@ -8,19 +8,7 @@ RSpec.describe Api::V1::BicyclesController, type: :controller do
 
   context 'when user is authenticated' do
     before do
-      # Create token with jti
-      token = JWT.encode(
-        {
-          sub: user.id,
-          exp: 24.hours.from_now.to_i,
-          jti: user.jti  # Include the user's jti
-        },
-        Rails.application.credentials.devise_jwt_secret_key,
-        'HS256'
-      )
-      @request.headers['Authorization'] = "Bearer #{token}"
-
-      # Set the current user ID
+      authenticate_user_in_controller(user)
       controller.instance_variable_set(:@current_user_id, user.id)
       controller.instance_variable_set(:@current_user, user)
     end

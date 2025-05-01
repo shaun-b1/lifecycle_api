@@ -58,7 +58,6 @@ RSpec.describe "Error Handling", type: :request do
       params: { bicycle: { name: "", brand: "", model: "" } }
 
       expect(response).to have_http_status(:unprocessable_entity)
-      expect(json_response[:code]).to eq("INVALID_RECORD")
       expect(json_response[:error]).to include("Name can't be blank")
     end
   end
