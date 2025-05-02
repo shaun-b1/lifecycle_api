@@ -3,7 +3,7 @@ module Api
     module Errors
       class ValidationError < ApiError
         def initialize(message = "Validation failed", details = [])
-          super(message, "VALIDATION_FAILED", :unprocessable_entity, details)
+          super(message, "VALIDATION_ERROR", :unprocessable_entity, details)
         end
       end
     end

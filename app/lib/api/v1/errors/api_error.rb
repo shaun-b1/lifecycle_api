@@ -8,7 +8,7 @@ module Api
           @message = message
           @code = code
           @status = status
-          @details = details
+          @details = details || []
           super(message)
         end
 

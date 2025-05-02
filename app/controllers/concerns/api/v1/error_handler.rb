@@ -40,8 +40,10 @@ module Api::V1::ErrorHandler
       "INTERNAL_SERVER_ERROR",
       :internal_server_error
     )
+
     render json: error.to_hash, status: error.status
   end
+
 
   def handle_unauthorized
     error = Api::V1::Errors::AuthorizationError.new
