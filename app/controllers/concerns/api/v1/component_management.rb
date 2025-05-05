@@ -8,33 +8,60 @@ module ::Api::V1::ComponentManagement
 
   def show
     authorize @component
-    render json: @component, serializer: component_serializer
+
+    response = Api::V1::ResponseService.success(
+      ActiveModelSerializers::SerializableResource.new(@component, serializer: component_serializer).as_json,
+      "#{component_class.name} retrieved successfully"
+    )
+
+    render response
   end
 
   def create
-    @component = build_component(component_params)
     authorize @component
+    @component = build_component(component_params)
 
     if @component.save
-      render json: @component, status: :created, serializer: component_serializer
+      response_data = Api::V1::ResponseService.created(
+        ActiveModelSerializers::SerializableResource.new(@component, serializer: component_serializer).as_json,
+        "#{component_class.name} created successfully"
+      )
+
+      render response_data
     else
-      handle_validation_error(@component)
+      raise Api::V1::Errors::ValidationError.new(
+        "Failed to create #{component_class.name}",
+        @component.errors.full_messages
+        )
     end
   end
 
   def update
     authorize @component
+
     if @component.update(component_params)
-      render json: @component, serializer: component_serializer
+      response_data = Api::V1::ResponseService.updated(
+        ActiveModelSerializers::SerializableResource.new(@component, serializer: component_serializer).as_json,
+        "#{component_class.name} updated successfully"
+      )
+      render response_data
     else
-      handle_validation_error(@component)
+      raise Api::V1::Errors::ValidationError.new(
+        "Failed to update #{component_class.name}",
+        @component.errors.full_messages
+        )
     end
   end
 
   def destroy
     authorize @component
     @component.destroy
-    head :no_content
+
+    response_data = Api::V1::ResponseService.deleted(
+      "#{component_class.name} deleted successfully"
+    )
+
+    render response_data
   end
 
   private
@@ -42,7 +69,9 @@ module ::Api::V1::ComponentManagement
   def set_bicycle
     @bicycle = Bicycle.find(params[:bicycle_id])
     rescue ActiveRecord::RecordNotFound
-      raise Api::V1::Errors::ResourceNotFoundError.new("Bicycle")
+      raise Api::V1::Errors::ResourceNotFoundError.new(
+        "Bicycle with ID #{params[:bicycle_id]} not found"
+      )
   end
 
   def component_class
@@ -60,12 +89,16 @@ module ::Api::V1::ComponentManagement
   def set_component
     @component = find_component
     rescue ActiveRecord::RecordNotFound
-      raise Api::V1::Errors::ResourceNotFoundError.new(component_class.name)
+      raise Api::V1::Errors::ResourceNotFoundError.new(
+        "#{component_class.name} with ID #{params[:id]} not found for Bicycle #{params[:bicycle_id]}"
+      )
   end
 
   def find_component
     if single_component?
-      @bicycle.send(component_class.to_s.underscore)
+      component = @bicycle.send(component_class.to_s.underscore)
+      raise ActiveRecord::RecordNotFound unless component
+      component
     else
       @bicycle.send(component_class.to_s.pluralize.underscore).find(params[:id])
     end

@@ -11,8 +11,11 @@ RSpec.describe "Error Handling", type: :request do
 
       expect(response).to have_http_status(:not_found)
       expect(json_response[:error]).to eq({
+        code: "NOT_FOUND",
+        details: [],
         message: "Bicycle not found",
-        code: "NOT_FOUND"
+        status: 404,
+        status_text: "Not Found"
       })
     end
   end
@@ -23,8 +26,11 @@ RSpec.describe "Error Handling", type: :request do
 
       expect(response).to have_http_status(:unauthorized)
       expect(json_response[:error]).to eq({
+        code: "UNAUTHORIZED",
+        details: [],
         message: "Authentication failed",
-        code: "UNAUTHORIZED"
+        status: 401,
+        status_text: "Unauthorized"
       })
     end
 
@@ -34,8 +40,11 @@ RSpec.describe "Error Handling", type: :request do
 
           expect(response).to have_http_status(:unauthorized)
           expect(json_response[:error]).to eq({
+            code: "UNAUTHORIZED",
+            details: [],
             message: "Authentication failed",
-            code: "UNAUTHORIZED"
+            status: 401,
+            status_text: "Unauthorized"
           })
     end
 
@@ -46,23 +55,28 @@ RSpec.describe "Error Handling", type: :request do
 
       expect(response).to have_http_status(:forbidden)
       expect(json_response[:error]).to eq({
+        code: "AUTHORIZATION_FAILED",
+        details: [],
         message: "You are not authorized to perform this action",
-        code: "FORBIDDEN"
+        status: 403,
+        status_text: "Forbidden"
       })
     end
   end
 
   describe "Parameter validation" do
-    it "returns 422 when required parameters are missing" do
+    it "returns 400 when required parameters are missing" do
       post "/api/v1/bicycles",
         headers: jwt_auth_headers(user),
         params: {}
 
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:bad_request)
         expect(json_response[:error]).to eq({
-          message: "Required parameter missing: bicycle",
           code: "PARAMETER_MISSING",
-          details: [ "Parameter bicycle is required" ]
+          details: [ "Parameter bicycle is required" ],
+          message: "Parameter 'bicycle' is required",
+          status: 400,
+          status_text: "Bad Request"
         })
     end
 
@@ -73,9 +87,11 @@ RSpec.describe "Error Handling", type: :request do
 
       expect(response).to have_http_status(:unprocessable_entity)
       expect(json_response[:error]).to eq({
-        message: "Name can't be blank",
         code: "VALIDATION_ERROR",
-        details: [ "Name can't be blank", "Brand can't be blank", "Model can't be blank" ]
+        details: [ "Name can't be blank", "Brand can't be blank", "Model can't be blank" ],
+        message: "Failed to create bicycle",
+        status: 422,
+        status_text: "Unprocessable Entity"
       })
     end
   end
@@ -87,8 +103,11 @@ RSpec.describe "Error Handling", type: :request do
 
       expect(response).to have_http_status(:internal_server_error)
       expect(json_response[:error]).to eq({
+        code: "INTERNAL_SERVER_ERROR",
+        details: [],
         message: "An unexpected error occurred",
-        code: "INTERNAL_SERVER_ERROR"
+        status: 500,
+        status_text: "Internal Server Error"
       })
     end
   end

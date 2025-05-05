@@ -2,9 +2,13 @@ module Api
   module V1
     module Errors
       class ParameterMissingError < ApiError
-        def initialize(param, details = nil)
-          message = "Required parameter missing: #{param}"
-          super(message, "PARAMETER_MISSING", :unprocessable_entity, details)
+        def initialize(param, details = [])
+          super(
+            "Parameter '#{param}' is required",
+            "PARAMETER_MISSING",
+            :bad_request,
+            details
+          )
         end
       end
     end

@@ -31,7 +31,10 @@ module WearTest
     config.autoload_paths << Rails.root.join("app/serializers/concerns")
     config.middleware.use ActionDispatch::Cookies
     config.middleware.use ActionDispatch::Session::CookieStore
-    config.autoload_paths << Rails.root.join("app/lib")
+    config.autoload_paths += [
+      Rails.root.join("app/lib"),
+      Rails.root.join("app/services")
+    ]
     config.eager_load_paths << Rails.root.join("app/lib")
   end
 end

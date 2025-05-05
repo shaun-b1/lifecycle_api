@@ -9,21 +9,24 @@ class Api::V1::Users::RegistrationsController < Devise::RegistrationsController
     if resource.save
       jwt_token = request.env["warden-jwt_auth.token"]
       sign_up(resource_name, resource)
-      render json: {
-        status: { code: 200, message: "Signed up successfully." },
-        data: {
+
+      response_data = Api::V1::ResponseService.created(
+        {
           user: Api::V1::UserSerializer.new(resource).as_json,
           token: jwt_token
-        }
-      }, status: :created
+        },
+        "Signed up successfully."
+      )
+
+      render response_data
     else
       clean_up_passwords resource
       set_minimum_password_length
-      render json: {
-        status: {
-          message: "User couldn't be created successfully. #{resource.errors.full_messages.to_sentence}"
-        }
-      }, status: :unprocessable_entity
+
+      raise Api::V1::Errors::ValidationError.new(
+        "User couldn't be created successfully",
+        resource.errors.full_messages
+      )
     end
   end
 
@@ -35,18 +38,19 @@ class Api::V1::Users::RegistrationsController < Devise::RegistrationsController
 
   def respond_with(resource, _opts = {})
     if resource.persisted?
-      render json: {
-        status: { code: 200, message: "Signed up successfully." },
-        data: {
+      response_data = Api::V1::ResponseService.created(
+        {
           user: Api::V1::UserSerializer.new(resource).as_json
-        }
-      }, status: :created
+        },
+        "Signed up successfully."
+      )
+
+      render response_data
     else
-      render json: {
-        status: {
-          message: "User couldn't be created successfully. #{resource.errors.full_messages.to_sentence}"
-        }
-      }, status: :unprocessable_entity
+      raise Api::V1::Errors::ValidationError.new(
+        "User couldn't be created successfully",
+        resource.errors.full_messages
+      )
     end
   end
 end

@@ -2,8 +2,13 @@ module Api
   module V1
     module Errors
       class AuthenticationError < ApiError
-        def initialize(message = "Authentication failed", details = nil)
-          super(message, "UNAUTHORIZED", :unauthorized, details)
+        def initialize(message = nil, details = [])
+          super(
+            message || "Authentication failed",
+            "UNAUTHORIZED",
+            :unauthorized,
+            details
+          )
         end
       end
     end

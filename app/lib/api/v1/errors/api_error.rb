@@ -4,25 +4,26 @@ module Api
       class ApiError < StandardError
         attr_reader :code, :status, :details
 
-        def initialize(message = nil, code = nil, status = nil, details = nil)
-          @message = message
-          @code = code
-          @status = status
-          @details = details || []
-          super(message)
+        def initialize(message = nil, error_code = nil, status = nil, details = [])
+          @message = message || "An error occurred"
+          @error_code = error_code || "API_ERROR"
+          @status = status || :internal_server_error
+          @details = Array(details)
+
+          super(@message)
         end
 
         def to_hash
-          error_hash = {
+          {
+            success: false,
             error: {
+              code: @error_code,
               message: @message,
-              code: @code
+              details: @details,
+              status: Api::V1::HttpStatus.code_for(@status),
+              status_text: Api::V1::HttpStatus.reason_phrase(Api::V1::HttpStatus.code_for(@status))
             }
           }
-
-          error_hash[:error][:details] = @details if @details.present?
-
-          error_hash
         end
       end
     end
