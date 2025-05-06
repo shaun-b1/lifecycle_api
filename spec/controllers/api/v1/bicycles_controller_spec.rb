@@ -70,7 +70,7 @@ RSpec.describe Api::V1::BicyclesController, type: :controller do
     describe "DELETE #destroy" do
       it "deletes user's own bicycle" do
         delete :destroy, params: { id: bicycle.id }, format: :json
-        expect(response).to have_http_status(:ok)
+        expect(response).to have_http_status(:no_content)
         expect(Bicycle.exists?(bicycle.id)).to be false
       end
 

@@ -53,7 +53,7 @@ module Api
               success: true,
               message: message
             },
-            status: :ok
+            status: :no_content
           }
         end
 

@@ -18,8 +18,8 @@ module ::Api::V1::ComponentManagement
   end
 
   def create
-    authorize @component
     @component = build_component(component_params)
+    authorize @component
 
     if @component.save
       response_data = Api::V1::ResponseService.created(

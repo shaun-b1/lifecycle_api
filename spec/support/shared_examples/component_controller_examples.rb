@@ -67,7 +67,7 @@ RSpec.shared_examples "a component controller" do |component_type|
         expect {
           delete :destroy, params: { bicycle_id: bicycle.id, id: component.id }, format: :json
         }.to change(component_type.to_s.classify.constantize, :count).by(-1)
-        expect(response).to have_http_status(:ok)
+        expect(response).to have_http_status(:no_content)
       end
 
       it "returns forbidden for other user's component" do

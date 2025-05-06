@@ -6,6 +6,7 @@ RSpec.shared_examples "a dual component controller" do |component_type|
   let(:component) { create(component_type, bicycle: bicycle, brand: "Test Brand", kilometres: 0) }
   let(:other_component) { create(component_type, bicycle: other_bicycle, brand: "Test Brand", kilometres: 0) }
   let(:valid_attributes) { { brand: "Test Brand", kilometres: 0 } }
+  let(:component_param_key) { component_type }
 
   context 'when user is authenticated' do
     before do
@@ -28,9 +29,12 @@ RSpec.shared_examples "a dual component controller" do |component_type|
       it "creates a component for user's bicycle" do
         expect {
           post :create,
-               params: { bicycle_id: bicycle.id, component_type => valid_attributes },
-               format: :json
+          params: {
+            bicycle_id: bicycle.id
+          }.merge({ component_param_key => valid_attributes }),
+          format: :json
         }.to change(component_type.to_s.classify.constantize, :count).by(1)
+
         expect(response).to have_http_status(:created)
       end
 

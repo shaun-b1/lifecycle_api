@@ -19,8 +19,8 @@ RSpec.describe 'Components API', type: :request do
         expect(response).to have_http_status(:success)
 
         json_response = JSON.parse(response.body)
-        expect(json_response).to include('id', 'brand', 'kilometres', 'type')
-        expect(json_response['type']).to eq(singular)
+        expect(json_response["data"]).to include('id', 'brand', 'kilometres', 'type')
+        expect(json_response["data"]['type']).to eq(singular)
       end
     end
   end
