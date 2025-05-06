@@ -30,7 +30,7 @@ RSpec.describe "Authentication", type: :request do
           }
 
       expect(response).to have_http_status(:ok)
-      expect(JSON.parse(response.body)["name"]).to eq(bicycle.name)
+      expect(JSON.parse(response.body)["data"]["name"]).to eq(bicycle.name)
     end
 
     context "with invalid credentials" do

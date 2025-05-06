@@ -4,6 +4,7 @@ require 'factory_bot_rails'
 require 'pundit/rspec'
 require 'pundit/matchers'
 require './spec/support/auth_helpers.rb'
+require './spec/support/request_spec_helper.rb'
 ENV['RAILS_ENV'] ||= 'test'
 require_relative '../config/environment'
 # Prevent database truncation if the environment is production
@@ -76,5 +77,6 @@ RSpec.configure do |config|
   # Helper method for JWT auth headers
   config.include AuthHelpers, type: :request
   config.include AuthHelpers, type: :controller
+  config.include RequestSpecHelper, type: :request
 end
 Dir[Rails.root.join('spec', 'support', '**', '*.rb')].sort.each { |f| require f }

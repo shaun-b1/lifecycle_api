@@ -29,7 +29,7 @@ RSpec.describe "Registration", type: :request do
              as: :json
 
         expect(response).to have_http_status(:created)
-        expect(JSON.parse(response.body)["status"]["message"]).to eq("Signed up successfully.")
+        expect(JSON.parse(response.body)["message"]).to eq("Signed up successfully.")
       end
 
       it "returns the created user data" do
@@ -54,8 +54,13 @@ RSpec.describe "Registration", type: :request do
                as: :json
         }.not_to change(User, :count)
 
-        expect(response).to have_http_status(:unprocessable_entity)
-        expect(JSON.parse(response.body)["status"]["message"]).to include("Email can't be blank")
+        expect(json_response[:error]).to eq({
+          code: "VALIDATION_ERROR",
+          message: "User couldn't be created successfully",
+          details: [ "Email can't be blank", "Email is invalid" ],
+          status: 422,
+          status_text: "Unprocessable Entity"
+        })
       end
 
       it "does not create a new User with invalid email format" do
@@ -68,8 +73,13 @@ RSpec.describe "Registration", type: :request do
                as: :json
         }.not_to change(User, :count)
 
-        expect(response).to have_http_status(:unprocessable_entity)
-        expect(JSON.parse(response.body)["status"]["message"]).to include("Email is invalid")
+        expect(json_response[:error]).to eq({
+          code: "VALIDATION_ERROR",
+          message: "User couldn't be created successfully",
+          details: [ "Email is invalid" ],
+          status: 422,
+          status_text: "Unprocessable Entity"
+        })
       end
 
       it "does not create a new User with mismatched passwords" do
@@ -82,8 +92,13 @@ RSpec.describe "Registration", type: :request do
                as: :json
         }.not_to change(User, :count)
 
-        expect(response).to have_http_status(:unprocessable_entity)
-        expect(JSON.parse(response.body)["status"]["message"]).to include("Password confirmation doesn't match")
+        expect(json_response[:error]).to eq({
+          code: "VALIDATION_ERROR",
+          message: "User couldn't be created successfully",
+          details: [ "Password confirmation doesn't match Password" ],
+          status: 422,
+          status_text: "Unprocessable Entity"
+        })
       end
 
       it "does not create a new User with too short password" do
@@ -97,8 +112,13 @@ RSpec.describe "Registration", type: :request do
                as: :json
         }.not_to change(User, :count)
 
-        expect(response).to have_http_status(:unprocessable_entity)
-        expect(JSON.parse(response.body)["status"]["message"]).to include("Password is too short")
+        expect(json_response[:error]).to eq({
+          code: "VALIDATION_ERROR",
+          message: "User couldn't be created successfully",
+          details: [ "Password is too short (minimum is 6 characters)" ],
+          status: 422,
+          status_text: "Unprocessable Entity"
+        })
       end
 
       it "does not create a new User without a name" do
@@ -111,12 +131,17 @@ RSpec.describe "Registration", type: :request do
                as: :json
         }.not_to change(User, :count)
 
-        expect(response).to have_http_status(:unprocessable_entity)
-        expect(JSON.parse(response.body)["status"]["message"]).to include("Name can't be blank")
+        expect(json_response[:error]).to eq({
+          code: "VALIDATION_ERROR",
+          message: "User couldn't be created successfully",
+          details: [ "Name can't be blank" ],
+          status: 422,
+          status_text: "Unprocessable Entity"
+        })
       end
 
       it "does not create a User with duplicate email" do
-        existing_user = create(:user, email: "test@example.com")
+        create(:user, email: "test@example.com")
 
         expect {
           post "/api/v1/register",
@@ -124,8 +149,13 @@ RSpec.describe "Registration", type: :request do
                as: :json
         }.not_to change(User, :count)
 
-        expect(response).to have_http_status(:unprocessable_entity)
-        expect(JSON.parse(response.body)["status"]["message"]).to include("Email has already been taken")
+        expect(json_response[:error]).to eq({
+          code: "VALIDATION_ERROR",
+          message: "User couldn't be created successfully",
+          details: [ "Email has already been taken" ],
+          status: 422,
+          status_text: "Unprocessable Entity"
+        })
       end
     end
   end

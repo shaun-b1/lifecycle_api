@@ -46,6 +46,23 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    # Add PostgreSQL service
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: wear_test_test
+        ports:
+          - 5432:5432
+        # Add health check to ensure PostgreSQL is ready before tests run
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Install packages
         run: sudo apt-get update && sudo apt-get install --no-install-recommends -y build-essential git pkg-config
@@ -62,7 +79,31 @@ jobs:
       - name: Install dependencies
         run: bundle install
 
+      # Configure database.yml for CI
+      - name: Set up database.yml
+        run: |
+          cat > config/database.yml << EOF
+          test:
+            adapter: postgresql
+            encoding: unicode
+            host: localhost
+            port: 5432
+            username: postgres
+            password: postgres
+            database: wear_test_test
+            schema_search_path: public
+          EOF
+
+      - name: Set up database
+        env:
+          RAILS_ENV: test
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/wear_test_test
+        run: |
+          bin/rails db:create
+          bin/rails db:schema:load
+
       - name: Run tests
         env:
           RAILS_ENV: test
-        run: bin/rails db:test:prepare test
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/wear_test_test
+        run: bin/rails test

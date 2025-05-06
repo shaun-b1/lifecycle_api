@@ -21,7 +21,10 @@ RSpec.describe Api::V1::BicyclesController, type: :controller do
         get :index, format: :json
         expect(response).to have_http_status(:success)
 
-        bicycles = JSON.parse(response.body)
+        response_body = JSON.parse(response.body)
+        expect(response_body['success']).to eq(true)
+
+        bicycles = response_body['data']
         expect(bicycles.map { |b| b['id'] }).to include(bicycle.id)
         expect(bicycles.map { |b| b['id'] }).not_to include(other_bicycle.id)
       end
