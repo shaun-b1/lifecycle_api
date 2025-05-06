@@ -2,10 +2,10 @@ module Api
   module V1
     module Errors
       class BadRequestError < ApiError
-        def initialize(message = "Bad request", details = [] )
-          super(message, 
-          "BAD_REQUEST", 
-          :bad_request, 
+        def initialize(message = "Bad request", details = [])
+          super(message,
+          "BAD_REQUEST",
+          :bad_request,
           details)
         end
       end

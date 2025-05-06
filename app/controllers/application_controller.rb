@@ -19,7 +19,7 @@ class ApplicationController < ActionController::API
         if decoded["jti"] != @current_user.jti
           error = Api::V1::Errors::TokenError.new(
             "Token has been revoked",
-            ["The token has been revoked or is invalid"]
+            [ "The token has been revoked or is invalid" ]
           )
           render json: error.to_hash, status: error.status
           return
