@@ -1,4 +1,6 @@
 class Bicycle < ApplicationRecord
+  include KilometreValidatable
+
   belongs_to :user
   has_one :chain, dependent: :destroy
   has_one :cassette, dependent: :destroy

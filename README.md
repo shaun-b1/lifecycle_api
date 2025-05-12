@@ -1,6 +1,6 @@
-# WearTest
+# LifeCycle
 
-WearTest is a Rails API designed to track the wear of bicycle components, helping cyclists monitor and manage the maintenance of their bikes.
+LifeCycle is a Rails API designed to track the wear of bicycle components, helping cyclists monitor and manage the maintenance of their bikes.
 
 ## Features
 
@@ -23,8 +23,8 @@ Before setting up the project, ensure you have the following installed:
 ### Clone the Repository:
 
 ```bash
-git clone https://github.com/shaun-b1/wear_test.git
-cd wear_test
+git clone https://github.com/shaun-b1/lifecycle_api.git
+cd lifecycle_api
 ```
 
 ### Install Dependencies:
