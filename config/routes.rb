@@ -4,6 +4,11 @@ Rails.application.routes.draw do
       resources :users, only: [ :index, :show, :update, :destroy ]
 
       resources :bicycles, only: [ :index, :show, :create, :update, :destroy ] do
+        member do
+          post :record_ride
+          post :record_maintenance
+        end
+
         %i[chains cassettes chainrings tires brakepads].each do |component|
           resources component, only: [ :show, :create, :update, :destroy ]
         end

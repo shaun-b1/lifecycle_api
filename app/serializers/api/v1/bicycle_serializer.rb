@@ -1,6 +1,14 @@
 class Api::V1::BicycleSerializer < ActiveModel::Serializer
   include Api::V1::KilometresSerializer
-  attributes :id, :name, :brand, :model, :kilometres
+  attributes :id, :name, :brand, :model, :kilometres, :riding_environment, :adjusted_wear_limits
+
+  def riding_environment
+    object.riding_environment
+  end
+
+  def adjusted_wear_limits
+    object.adjusted_wear_limits
+  end
 
   has_one :chain
   has_one :cassette

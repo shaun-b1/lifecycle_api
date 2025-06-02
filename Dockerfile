@@ -2,8 +2,8 @@
 # check=error=true
 
 # This Dockerfile is designed for production, not development. Use with Kamal or build'n'run by hand:
-# docker build -t wear_test .
-# docker run -d -p 80:80 -e RAILS_MASTER_KEY=<value from config/master.key> --name wear_test wear_test
+# docker build -t lifecycle_api .
+# docker run -d -p 80:80 -e RAILS_MASTER_KEY=<value from config/master.key> --name lifecycle_api lifecycle_api
 
 # For a containerized dev environment, see Dev Containers: https://guides.rubyonrails.org/getting_started_with_devcontainer.html
 

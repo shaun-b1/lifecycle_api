@@ -2,8 +2,12 @@ module BicycleComponent
   extend ActiveSupport::Concern
 
   included do
+    include KilometreValidatable
+    include KilometreTrackable
+
     belongs_to :bicycle
     validates :bicycle, presence: true
+    validates :brand, presence: true
     validate :validate_component_limit
   end
 
@@ -15,6 +19,12 @@ module BicycleComponent
     def max_components
       @max_components || 1
     end
+  end
+
+  def replace_component(new_brand, reset_kilometres = true)
+    self.brand = new_brand
+    self.kilometres = 0 if reset_kilometres
+    save
   end
 
   private
