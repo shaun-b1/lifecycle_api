@@ -1,5 +1,58 @@
 class Api::V1::BicyclesController < ApplicationController
   include Api::V1::CrudOperations
+
+  def record_ride
+    @bicycle = find_resource
+    authorize @bicycle
+
+    distance = params[:distance].to_f
+    notes = params[:notes]
+
+    begin
+      RideRecordingService.record(@bicycle, distance, notes)
+
+      response = Api::V1::ResponseService.success(
+        ActiveModelSerializers::SerializableResource.new(
+          @bicycle.reload,
+          serializer: resource_serializer
+        ).as_json,
+        "Ride recorded successfully"
+      )
+
+      render response
+    rescue Api::V1::Errors::ApiError => e
+      render json: e.to_hash, status: e.status
+    end
+  end
+
+  def record_maintenance
+    @bicycle = find_resource
+    authorize @bicycle
+
+    notes = params[:notes]
+    components = Array(params[:components])
+
+    begin
+      if params[:full_service].present? && params[:full_service] == "true"
+        MaintenanceService.record_full_service(@bicycle, notes)
+      else
+        MaintenanceService.record_bicycle_maintenance(@bicycle, components, notes)
+      end
+
+      response = Api::V1::ResponseService.success(
+        ActiveModelSerializers::SerializableResource.new(
+          @bicycle.reload,
+          serializer: resource_serializer
+        ).as_json,
+        "Maintenance recorded successfully"
+      )
+
+      render response
+    rescue Api::V1::Errors::ApiError => e
+      render json: e.to_hash, status: e.status
+    end
+  end
+
   private
 
   def resource_class
@@ -11,7 +64,7 @@ class Api::V1::BicyclesController < ApplicationController
   end
 
   def resource_params
-    params.require(:bicycle).permit(:name, :brand, :model, :kilometres)
+    params.require(:bicycle).permit(:name, :brand, :model, :kilometres, :terrain, :weather, :particulate)
   end
 
   def find_resource

@@ -10,7 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_02_09_205434) do
+ActiveRecord::Schema[8.0].define(version: 2025_05_16_063222) do
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "pg_catalog.plpgsql"
+
   create_table "bicycles", force: :cascade do |t|
     t.string "name"
     t.string "brand"
@@ -19,6 +22,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_09_205434) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.float "kilometres"
+    t.string "terrain"
+    t.string "weather"
+    t.string "particulate"
     t.index ["user_id"], name: "index_bicycles_on_user_id"
   end
 
@@ -56,6 +62,19 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_09_205434) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["bicycle_id"], name: "index_chains_on_bicycle_id"
+  end
+
+  create_table "kilometre_logs", force: :cascade do |t|
+    t.string "trackable_type", null: false
+    t.bigint "trackable_id", null: false
+    t.string "event_type", null: false
+    t.float "previous_value", default: 0.0, null: false
+    t.float "new_value", default: 0.0, null: false
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["trackable_type", "trackable_id", "created_at"], name: "idx_on_trackable_type_trackable_id_created_at_7a660b97da"
+    t.index ["trackable_type", "trackable_id"], name: "index_kilometre_logs_on_trackable"
   end
 
   create_table "tires", force: :cascade do |t|

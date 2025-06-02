@@ -3,6 +3,7 @@ module BicycleComponent
 
   included do
     include KilometreValidatable
+    include KilometreTrackable
 
     belongs_to :bicycle
     validates :bicycle, presence: true
