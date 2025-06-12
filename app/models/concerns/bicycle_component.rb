@@ -4,10 +4,10 @@ module BicycleComponent
   included do
     include KilometreValidatable
     include KilometreTrackable
+    inlcude ComponentValidatable
 
     belongs_to :bicycle
     validates :bicycle, presence: true
-    validates :brand, presence: true
     validate :validate_component_limit
   end
 
