@@ -40,7 +40,7 @@ class Bicycle < ApplicationRecord
       multipliers[:chain] *= 1.4
       multipliers[:cassette] *= 1.6
       multipliers[:chainring] *= 1.4
-      multipliers[:tire] *= 1.3
+      multipliers[:tire] *= 1.2
       multipliers[:brakepad] *= 2.0
     end
 
@@ -62,12 +62,12 @@ class Bicycle < ApplicationRecord
       multipliers[:chain] *= 1.3
       multipliers[:cassette] *= 1.2
       multipliers[:chainring] *= 1.1
-      multipliers[:tire] *= 1.2
+      multipliers[:tire] *= 1.1
     when "high"
       multipliers[:chain] *= 1.6
       multipliers[:cassette] *= 1.4
       multipliers[:chainring] *= 1.3
-      multipliers[:tire] *= 1.4
+      multipliers[:tire] *= 1.2
       multipliers[:brakepad] *= 1.3
     end
 
