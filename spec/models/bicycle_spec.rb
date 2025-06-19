@@ -209,46 +209,129 @@ RSpec.describe Bicycle, type: :model do
   end
 
   describe "maintenance recommendations" do
-    it "identifies components approaching wear limits" do
-      # bicycle with high-mileage chain suggests "Chain needs replacement"
-      # bicycle with high-mileage brakes suggests "Brake pad X needs inspection"
-      # bicycle with multiple worn components returns multiple recommendations
+    it "recommends single instance component inspection" do
+      create(:chain, bicycle: bicycle, kilometres: 3600)
+
+      recommendations = bicycle.maintenance_recommendations
+      expect(recommendations).to include("Chain needs replacement")
+    end
+
+    it "recommends multi-instance component inspection" do
+      create(:brakepad, bicycle: bicycle, kilometres: 4100)
+
+      recommendations = bicycle.maintenance_recommendations
+      expect(recommendations).to include("Brake pad 1 needs inspection")
+    end
+
+    it "recommends multiple component inspection" do
+      create(:chain, bicycle: bicycle, kilometres: 3600)
+      create(:brakepad, bicycle: bicycle, kilometres: 4100)
+
+      recommendations = bicycle.maintenance_recommendations
+      expect(recommendations).to include("Brake pad 1 needs inspection", "Chain needs replacement")
     end
 
     it "handles missing components gracefully" do
-      # bicycle with no chain doesn't crash, returns empty array
-      # bicycle with only some components gives appropriate recommendations
+      empty_recommendations = bicycle.maintenance_recommendations
+      expect(empty_recommendations).to eq([])
+
+      create(:chain, bicycle: bicycle, kilometres: 3600)
+      create(:brakepad, bicycle: bicycle, kilometres: 3600)
+      create(:brakepad, bicycle: bicycle, kilometres: 3600)
+      create(:chainring, bicycle: bicycle, kilometres: 3600)
+      create(:cassette, bicycle: bicycle, kilometres: 3600)
+      partial_recommendations = bicycle.maintenance_recommendations
+      expect(partial_recommendations).to eq([ "Chain needs replacement" ])
     end
 
     it "considers environmental factors in recommendations" do
-      # mountainous bike recommends replacement sooner than flat bike
+        wet_bike = create(:bicycle, user: user, weather: 'wet')
+        dry_bike = create(:bicycle, user: user, weather: 'dry')
+
+        create(:chain, bicycle: wet_bike, kilometres: 3000)
+        create(:chain, bicycle: dry_bike, kilometres: 3000)
+
+        wet_recommendations = wet_bike.maintenance_recommendations
+        dry_recommendations = dry_bike.maintenance_recommendations
+
+        expect(wet_recommendations).to include("Chain needs replacement")
+        expect(dry_recommendations).to be_empty
     end
 
     it "provides no recommendations for new components" do
-      # fresh bicycle returns empty recommendations array
+      create(:chain, bicycle: bicycle, kilometres: 0)
+      create(:brakepad, bicycle: bicycle, kilometres: 0)
+      create(:brakepad, bicycle: bicycle, kilometres: 0)
+      create(:chainring, bicycle: bicycle, kilometres: 0)
+      create(:cassette, bicycle: bicycle, kilometres: 0)
+      create(:tire, bicycle: bicycle, kilometres: 0)
+      create(:tire, bicycle: bicycle, kilometres: 0)
+
+      recommentations = bicycle.maintenance_recommendations
+
+      expect(recommentations).to be_empty
     end
   end
 
   describe "component status" do
     it "calculates wear percentages correctly" do
-      # component at 50% of limit shows 50% wear
-      # component at 100% of limit shows 100% wear
-      # component at 0km shows 0% wear
+      bike1 = create(:bicycle, user: user)
+      bike2 = create(:bicycle, user: user)
+      bike3 = create(:bicycle, user: user)
+
+      create(:chain, bicycle: bike1, kilometres: 0)
+      create(:chain, bicycle: bike2, kilometres: 1750)
+      create(:chain, bicycle: bike3, kilometres: 3500)
+
+      bike1_status = bike1.component_status
+      bike2_status = bike2.component_status
+      bike3_status = bike3.component_status
+
+      expect(bike1_status[:chain][:wear_percentage]).to eq(0)
+      expect(bike2_status[:chain][:wear_percentage]).to eq(50)
+      expect(bike3_status[:chain][:wear_percentage]).to eq(100)
     end
 
     it "handles missing components without crashing" do
-      # bicycle with no chain returns nil for chain status
-      # bicycle with some components returns partial status
+      create(:chainring, bicycle: bicycle, kilometres: 0)
+      create(:cassette, bicycle: bicycle, kilometres: 0)
+
+      bike_status = bicycle.component_status
+
+      expect(bike_status[:chain]).to be_nil
+      expect(bike_status[:chainring][:wear_percentage]).to be
+      expect(bike_status[:cassette][:wear_percentage]).to be
     end
     it "includes bicycle summary information" do
-      # status includes bicycle kilometres, lifetime kilometres, environment
+      bicycle = create(:bicycle, user: user, kilometres: 0, terrain: 'mountainous', weather: 'mixed', particulate: 'low')
+      bike_status = bicycle.component_status
+
+      expect(bike_status[:bicycle][:kilometres]).to eq(0)
+      expect(bike_status[:bicycle][:lifetime_kilometres]).to eq(0)
+      expect(bike_status[:bicycle][:riding_environment][:terrain]).to eq("Mountainous terrain")
+      expect(bike_status[:bicycle][:riding_environment][:weather]).to eq("Mixed weather conditions")
+      expect(bike_status[:bicycle][:riding_environment][:particulate]).to eq("Low particulate")
     end
     it "handles edge cases in wear calculation" do
-      # components with zero limits don't cause division by zero
-      # negative kilometres don't break percentage calculation
+      bicycle = create(:bicycle, user: user, terrain: 'mountainous', weather: 'wet', particulate: 'high')
+      create(:chain, bicycle: bicycle, kilometres: 2000)
+      bike_status = bicycle.component_status
+
+      expect { bike_status }.not_to raise_error
+      expect(bike_status[:chain][:wear_percentage]).to be >= 0
+      expect(bike_status[:chain][:wear_percentage]).to be > 100
     end
     it "shows environmental impact in status summary" do
-      # mountainous bike shows lower wear limits than flat bike
+        wet_bike = create(:bicycle, user: user, weather: 'wet')
+        dry_bike = create(:bicycle, user: user, weather: 'dry')
+
+        create(:chain, bicycle: wet_bike)
+        create(:chain, bicycle: dry_bike)
+
+        wet_status = wet_bike.component_status
+        dry_status = dry_bike.component_status
+
+        expect(wet_status[:chain][:wear_limit]).to be < (dry_status[:chain][:wear_limit])
     end
   end
 end
