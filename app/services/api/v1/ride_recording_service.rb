@@ -1,4 +1,4 @@
-class RideRecordingService
+class Api::V1::RideRecordingService
   def self.record(bicycle, distance, notes = nil)
     if distance <= 0
       raise Api::V1::Errors::ValidationError.new(

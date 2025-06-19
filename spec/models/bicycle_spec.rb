@@ -216,7 +216,7 @@ RSpec.describe Bicycle, type: :model do
       expect(recommendations).to include("Chain needs replacement")
     end
 
-    it "recommends multi-instance component inspection" do
+    it "recommends inspection for dual components like brake pads" do
       create(:brakepad, bicycle: bicycle, kilometres: 4100)
 
       recommendations = bicycle.maintenance_recommendations
@@ -267,29 +267,25 @@ RSpec.describe Bicycle, type: :model do
       create(:tire, bicycle: bicycle, kilometres: 0)
       create(:tire, bicycle: bicycle, kilometres: 0)
 
-      recommentations = bicycle.maintenance_recommendations
+      recommendations = bicycle.maintenance_recommendations
 
-      expect(recommentations).to be_empty
+      expect(recommendations).to be_empty
     end
   end
 
   describe "component status" do
     it "calculates wear percentages correctly" do
-      bike1 = create(:bicycle, user: user)
-      bike2 = create(:bicycle, user: user)
-      bike3 = create(:bicycle, user: user)
+      test_cases = [
+        { kilometres: 0, expected: 0 },
+        { kilometres: 1750, expected: 50 },
+        { kilometres: 3500, expected: 100 }
+      ]
 
-      create(:chain, bicycle: bike1, kilometres: 0)
-      create(:chain, bicycle: bike2, kilometres: 1750)
-      create(:chain, bicycle: bike3, kilometres: 3500)
-
-      bike1_status = bike1.component_status
-      bike2_status = bike2.component_status
-      bike3_status = bike3.component_status
-
-      expect(bike1_status[:chain][:wear_percentage]).to eq(0)
-      expect(bike2_status[:chain][:wear_percentage]).to eq(50)
-      expect(bike3_status[:chain][:wear_percentage]).to eq(100)
+      test_cases.each do |test_case|
+        bike = create(:bicycle, user: user)
+        create(:chain, bicycle: bike, kilometres: test_case[:kilometres])
+        expect(bike.component_status[:chain][:wear_percentage]).to eq(test_case[:expected])
+      end
     end
 
     it "handles missing components without crashing" do
@@ -299,8 +295,8 @@ RSpec.describe Bicycle, type: :model do
       bike_status = bicycle.component_status
 
       expect(bike_status[:chain]).to be_nil
-      expect(bike_status[:chainring][:wear_percentage]).to be
-      expect(bike_status[:cassette][:wear_percentage]).to be
+      expect(bike_status[:chainring][:wear_percentage]).to eq(0)
+      expect(bike_status[:cassette][:wear_percentage]).to eq(0)
     end
     it "includes bicycle summary information" do
       bicycle = create(:bicycle, user: user, kilometres: 0, terrain: 'mountainous', weather: 'mixed', particulate: 'low')
