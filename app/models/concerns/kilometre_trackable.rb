@@ -4,22 +4,15 @@ module KilometreTrackable
   included do
     has_many :kilometre_logs, as: :trackable, dependent: :destroy
     after_save :log_kilometre_changes, if: :saved_change_to_kilometres?
+    attr_accessor :pending_notes
   end
 
   def add_kilometres(amount, notes = nil)
     return false if amount <= 0
 
+    self.pending_notes = notes
     self.kilometres = (kilometres || 0) + amount
     saved = save
-
-    if saved
-      kilometre_logs.create(
-        event_type: "increase",
-        previous_value: kilometres - amount,
-        new_value: kilometres,
-        notes: notes || "Added #{amount} km"
-      )
-    end
     saved
   end
 
@@ -72,11 +65,15 @@ module KilometreTrackable
       "decrease"
     end
 
+    notes_text = pending_notes || "Kilometres #{event_type}d from #{old_value || 0} to #{new_value || 0}"
+
     kilometre_logs.create(
       event_type: event_type,
       previous_value: old_value || 0,
       new_value: new_value || 0,
-      notes: "Kilometres #{event_type}d from #{old_value || 0} to #{new_value || 0}"
+      notes: notes_text
     )
+
+    self.pending_notes = nil
   end
 end

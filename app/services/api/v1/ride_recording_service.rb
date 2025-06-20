@@ -16,7 +16,7 @@ class Api::V1::RideRecordingService
 
       unless bicycle_updated
         raise Api::V1::Errors::ValidationError.new(
-          "Failed to update bicycle kilometers",
+          "Failed to update bicycle kilometres",
           bicycle.errors.full_messages
         )
       end
@@ -26,7 +26,7 @@ class Api::V1::RideRecordingService
 
         unless component_updated
           raise Api::V1::Errors::ValidationError.new(
-            "Failed to update #{component.class.name.downcase} kilometers",
+            "Failed to update #{component.class.name.downcase} kilometres",
             component.errors.full_messages
           )
         end
