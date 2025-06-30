@@ -1,4 +1,4 @@
-class MaintenanceService
+class Api::V1::MaintenanceService
   def self.record_component_maintenance(component, notes = nil)
     unless component.present?
       raise Api::V1::Errors::ResourceNotFoundError.new("Component")
