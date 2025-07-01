@@ -179,7 +179,6 @@ RSpec.describe Api::V1::MaintenanceService, type: :service do
     end
 
     it "handles unexpected errors" do
-      chain = create(:chain, bicycle: bicycle, kilometres: 500)
       allow(bicycle).to receive(:record_maintenance).and_raise(StandardError, "Database connection lost")
 
       expect {
@@ -193,38 +192,66 @@ RSpec.describe Api::V1::MaintenanceService, type: :service do
 
   describe ".record_full_service" do
     it "resets bicycle and all component types" do
-      # create bicycle with 3000km
-      # create full component set: chain(500km), cassette(800km), chainring(1200km), 2 tires(400km each), 2 brakepads(200km each)
-      # call MaintenanceService.record_full_service(bicycle, "Complete overhaul")
-      # expect bicycle kilometres equals 0
-      # expect all components kilometres equal 0
-      # expect method returns true
-      skip
+      cassette = create(:cassette, bicycle: bicycle, kilometres: 800)
+      chain = create(:chain, bicycle: bicycle, kilometres: 500)
+      chainring = create(:chainring, bicycle: bicycle, kilometres: 1200)
+      front_brakepads = create(:brakepad, bicycle: bicycle, kilometres: 200)
+      rear_brakepads = create(:brakepad, bicycle: bicycle, kilometres: 200)
+      front_tire = create(:tire, bicycle: bicycle, kilometres: 400)
+      rear_tire = create(:tire, bicycle: bicycle, kilometres: 400)
+
+      result = Api::V1::MaintenanceService.record_full_service(bicycle, "Complete overhaul")
+
+      expect(bicycle.reload.kilometres).to eq(0)
+      bicycle_log = bicycle.kilometre_logs.order(:created_at).last
+      expect(bicycle_log.event_type).to eq("maintenance")
+      expect(bicycle_log.notes).to include("Complete overhaul")
+
+      components = [ cassette, chain, chainring, front_brakepads, rear_brakepads, front_tire, rear_tire ]
+      components.each do |component|
+        expect(component.reload.kilometres).to eq(0)
+      end
+
+      expect(result).to be true
     end
 
     it "uses default notes when none provided" do
-      # create bicycle with chain
-      # call service without notes parameter
-      # expect service succeeds
-      # expect bicycle log notes include "Full service"
-      skip
+      chain = create(:chain, bicycle: bicycle, kilometres: 500)
+
+      result = Api::V1::MaintenanceService.record_full_service(bicycle, nil)
+
+      bicycle_log = bicycle.kilometre_logs.order(:created_at).last
+      expect(bicycle_log.notes).to include("Full service")
+      expect(bicycle.reload.kilometres).to eq(0)
+      expect(chain.reload.kilometres).to eq(0)
+
+      expect(result).to be true
     end
 
     it "delegates to record_bicycle_maintenance correctly" do
-      # create bicycle
-      # expect MaintenanceService to receive(:record_bicycle_maintenance)
-      #   .with(bicycle, [:chain, :cassette, :chainring, :tires, :brakepads], "Custom notes")
-      # call MaintenanceService.record_full_service(bicycle, "Custom notes")
-      skip
+      expect(Api::V1::MaintenanceService).to receive(:record_bicycle_maintenance)
+        .with(bicycle, [ :chain, :cassette, :chainring, :tires, :brakepads ], "Custom notes")
+
+      Api::V1::MaintenanceService.record_full_service(bicycle, "Custom notes")
     end
 
     it "handles bicycles with partial component sets" do
-      # create bicycle with only chain and one tire
-      # call service
-      # expect bicycle kilometres reset
-      # expect existing components reset
-      # expect no errors from missing components
-      skip
+      tire = create(:tire, bicycle: bicycle, kilometres: 400)
+      chain = create(:chain, bicycle: bicycle, kilometres: 350)
+
+      result = nil
+      expect {
+        result = Api::V1::MaintenanceService.record_full_service(bicycle, "Custom notes")
+      }.not_to raise_error
+
+      expect(bicycle.reload.kilometres).to eq(0)
+      expect(tire.reload.kilometres).to eq(0)
+      expect(chain.reload.kilometres).to eq(0)
+      expect(result).to be true
+
+      expect(bicycle.cassette).to be_nil
+      expect(bicycle.chainring).to be_nil
+      expect(bicycle.brakepads.count).to eq(0)
     end
   end
 end
