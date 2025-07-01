@@ -2,7 +2,7 @@ module Api
   module V1
     module Errors
       class ApiError < StandardError
-        attr_reader :code, :status, :details
+        attr_reader :error_code, :status, :details
 
         def initialize(message = nil, error_code = nil, status = nil, details = [])
           @message = message || "An error occurred"

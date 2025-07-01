@@ -1,7 +1,7 @@
 require 'rails_helper'
 RSpec.describe Api::V1::MaintenanceService, type: :service do
   let(:user) { create(:user) }
-  let(:bicycle) { create(:bicycle, user: user, kilometres: 0) }
+  let(:bicycle) { create(:bicycle, user: user, kilometres: 2000) }
   describe ".record_component_maintenance" do
     it "successfully resets component kilometres" do
       chain = create(:chain, bicycle: bicycle, kilometres: 500)
@@ -64,68 +64,130 @@ RSpec.describe Api::V1::MaintenanceService, type: :service do
 
   describe ".record_bicycle_maintenance" do
     it "successfully resets bicycle and specified components" do
-      bicycle = create(:bicycle, user: user, kilometres: 2000)
       chain = create(:chain, bicycle: bicycle, kilometres: 500)
       cassette = create(:cassette, bicycle: bicycle, kilometres: 800)
       tire = create(:tire, bicycle: bicycle, kilometres: 300)
 
       result = Api::V1::MaintenanceService.record_bicycle_maintenance(bicycle, [ :chain, :cassette ], "Drivetrain service")
 
-      expect(bicycle.kilometres).to eq(0)
-      expect(chain.kilometres).to eq(0)
-      expect(cassette.kilometres).to eq(0)
-      expect(tire.kilometres).to eq(300)
+      expect(bicycle.reload.kilometres).to eq(0)
+      expect(chain.reload.kilometres).to eq(0)
+      expect(cassette.reload.kilometres).to eq(0)
+      expect(tire.reload.kilometres).to eq(300)
+
+      bicycle_log = bicycle.kilometre_logs.order(:created_at).last
+      expect(bicycle_log.event_type).to eq("maintenance")
+      expect(bicycle_log.notes).to include("Drivetrain service")
+
+      chain_log = chain.kilometre_logs.order(:created_at).last
+      expect(chain_log.event_type).to eq("maintenance")
+
+      cassette_log = cassette.kilometre_logs.order(:created_at).last
+      expect(cassette_log.event_type).to include("maintenance")
+
+      tire_logs_count_before = tire.kilometre_logs.maintenance.count
+      expect(tire.kilometre_logs.maintenance.count).to eq(tire_logs_count_before)
+
       expect(result).to be true
     end
 
     it "handles multiple components of same type" do
-      # create bicycle with tires (front=400km, rear=600km) and brakepads (front=200km, rear=300km)
-      # call service with components [:tires, :brakepads]
-      # expect all tires reset to 0km
-      # expect all brakepads reset to 0km
-      # expect bicycle reset to 0km
-      skip
+      front_tire = create(:tire, bicycle: bicycle, kilometres: 400)
+      rear_tire = create(:tire, bicycle: bicycle, kilometres: 600)
+      front_brakepads = create(:brakepad, bicycle: bicycle, kilometres: 200)
+      rear_brakepads = create(:brakepad, bicycle: bicycle, kilometres: 300)
+
+      result = Api::V1::MaintenanceService.record_bicycle_maintenance(bicycle, [ :tires, :brakepads ], "Replace tires and brakepads")
+
+      front_tire_log = front_tire.kilometre_logs.order(:created_at).last
+      rear_tire_log = rear_tire.kilometre_logs.order(:created_at).last
+      expect(front_tire.reload.kilometres).to eq(0)
+      expect(rear_tire.reload.kilometres).to eq(0)
+      expect(front_tire_log.event_type).to eq("maintenance")
+      expect(rear_tire_log.event_type).to eq("maintenance")
+
+      front_brake_log = front_brakepads.kilometre_logs.order(:created_at).last
+      rear_brake_log = rear_brakepads.kilometre_logs.order(:created_at).last
+      expect(front_brakepads.reload.kilometres).to eq(0)
+      expect(rear_brakepads.reload.kilometres).to eq(0)
+      expect(front_brake_log.event_type).to eq("maintenance")
+      expect(rear_brake_log.event_type).to eq("maintenance")
+
+      expect(bicycle.reload.kilometres).to eq(0)
+      bicycle_log = bicycle.kilometre_logs.order(:created_at).last
+      expect(bicycle_log.event_type).to eq("maintenance")
+      expect(bicycle_log.notes).to include("Replace tires and brakepads")
+
+      expect(result).to be true
     end
 
     it "validates bicycle exists" do
-      # expect calling with nil bicycle raises ResourceNotFoundError
-      # expect error message mentions "Bicycle"
-      skip
+      expect {
+        Api::V1::MaintenanceService.record_bicycle_maintenance(nil, [], "Test service")
+      }.to raise_error(Api::V1::Errors::ResourceNotFoundError) do |error|
+        expect(error.message).to include("Bicycle")
+      end
     end
 
     it "handles bicycle save failures" do
-      # create bicycle with 1000km
-      # mock bicycle.record_maintenance to return false with errors
-      # expect calling service raises ValidationError
-      # expect error message is "Failed to record bicycle maintenance"
-      # expect error details include bicycle error messages
-      skip
+      allow(bicycle).to receive(:record_maintenance).and_return(false)
+      allow(bicycle).to receive(:errors).and_return(
+        double(full_messages: [ "Simulated failure" ])
+      )
+
+      expect {
+        Api::V1::MaintenanceService.record_bicycle_maintenance(bicycle, [], "Test Service")
+      }.to raise_error(Api::V1::Errors::ValidationError) do |error|
+        expect(error.message).to include("Failed to record bicycle maintenance")
+        expect(error.details).to include("Simulated failure")
+      end
+
+      expect(bicycle.reload.kilometres).to eq(2000)
     end
 
     it "skips missing components gracefully" do
-      # create bicycle with chain but no cassette
-      # call service with components [:chain, :cassette]
-      # expect chain kilometres reset to 0
-      # expect no errors about missing cassette
-      # expect method returns true
-      skip
+      chain = create(:chain, bicycle: bicycle, kilometres: 300)
+
+      result = nil
+      expect {
+        result = Api::V1::MaintenanceService.record_bicycle_maintenance(bicycle, [ :chain, :cassette ], "Routine maintenance")
+      }.not_to raise_error
+
+      expect(chain.reload.kilometres).to eq(0)
+      expect(bicycle.reload.kilometres).to eq(0)
+      expect(result).to be true
+
+      expect(bicycle.cassette).to be_nil
     end
 
     it "uses database transactions for atomicity" do
-      # create bicycle with chain and cassette
-      # mock cassette.record_maintenance to fail
-      # expect calling service raises error
-      # expect bicycle kilometres NOT reset (rollback)
-      # expect chain kilometres NOT reset (rollback)
-      skip
+      chain = create(:chain, bicycle: bicycle, kilometres: 500)
+      cassette = create(:cassette, bicycle: bicycle, kilometres: 1000)
+
+      allow(bicycle).to receive(:cassette).and_return(cassette)
+      allow(cassette).to receive(:record_maintenance).and_return(false)
+      allow(cassette).to receive(:errors).and_return(
+        double(full_messages: [ "Simulated failure" ])
+      )
+
+      expect {
+        Api::V1::MaintenanceService.record_bicycle_maintenance(bicycle, [ :chain, :cassette ], "Regular maintenance")
+      }.to raise_error(Api::V1::Errors::ValidationError)
+
+      expect(bicycle.reload.kilometres).to eq(2000)
+      expect(chain.reload.kilometres).to eq(500)
     end
 
     it "handles unexpected errors" do
-      # create bicycle with chain
-      # mock unexpected exception during processing
-      # expect calling service raises ApiError with "MAINTENANCE_RECORDING_ERROR"
-      # expect error message mentions "unexpected error occurred"
-      skip
+      chain = create(:chain, bicycle: bicycle, kilometres: 500)
+      allow(bicycle).to receive(:record_maintenance).and_raise(StandardError, "Database connection lost")
+
+      expect {
+        Api::V1::MaintenanceService.record_bicycle_maintenance(bicycle, [ :chain ], "Test maintenance")
+      }.to raise_error(Api::V1::Errors::ApiError) do |error|
+        expect(error.error_code).to eq("MAINTENANCE_RECORDING_ERROR")
+        expect(error.message).to include("unexpected error occurred")
+      end
     end
   end
 

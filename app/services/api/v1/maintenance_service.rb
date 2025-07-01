@@ -38,10 +38,22 @@ class Api::V1::MaintenanceService
         component_obj = bicycle.send(component)
         if component_obj.is_a?(ActiveRecord::Associations::CollectionProxy)
           component_obj.each do |individual_component|
-            individual_component.record_maintenance("Maintenance as part of a bicycle service")
+            success = individual_component.record_maintenance("Maintenance as part of a bicycle service")
+            unless success
+              raise Api::V1::Errors::ValidationError.new(
+                "Failed to record #{individual_component.class.name.downcase} maintenance",
+                individual_component.errors.full_messages
+              )
+            end
           end
         else
-          component_obj.record_maintenance("Maintenance as part of a bicycle service")
+          success = component_obj.record_maintenance("Maintenance as part of a bicycle service")
+          unless success
+            raise Api::V1::Errors::ValidationError.new(
+              "Failed to record #{component_obj.class.name.downcase} maintenance",
+              component_obj.errors.full_messages
+            )
+          end
         end
       end
     end
