@@ -2,8 +2,8 @@ require 'rails_helper'
 require 'factory_bot_rails'
 
 RSpec.describe "Authentication", type: :request do
-  let!(:user) { create(:user) }
-  let!(:bicycle) { create(:bicycle, user: user) }
+  let(:user) { create(:user) }
+  let(:bicycle) { create(:bicycle, user: user) }
 
   describe "Session management" do
     it "can sign in a user and access protected resources" do

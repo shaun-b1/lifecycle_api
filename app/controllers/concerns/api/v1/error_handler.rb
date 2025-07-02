@@ -50,8 +50,9 @@ module Api::V1::ErrorHandler
     render json: error.to_hash, status: error.status
   end
 
-  def handle_not_found
-    error = Api::V1::Errors::ResourceNotFoundError.new
+  def handle_not_found(exception)
+    resource_name = controller_name.classify.singularize
+    error = Api::V1::Errors::ResourceNotFoundError.new(resource_name)
     render json: error.to_hash, status: error.status
   end
 

@@ -9,7 +9,7 @@ class Api::V1::BicyclesController < ApplicationController
     notes = params[:notes]
 
     begin
-      RideRecordingService.record(@bicycle, distance, notes)
+      Api::V1::RideRecordingService.record(@bicycle, distance, notes)
 
       response = Api::V1::ResponseService.success(
         ActiveModelSerializers::SerializableResource.new(
