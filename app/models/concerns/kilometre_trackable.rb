@@ -24,10 +24,10 @@ module KilometreTrackable
 
     if saved
       kilometre_logs.create(
-        event_type: "maintenance",
+        event_type:     "maintenance",
         previous_value: old_value,
-        new_value: 0,
-        notes: notes || "Maintenance performed"
+        new_value:      0,
+        notes:          notes || "Maintenance performed"
       )
     end
 
@@ -68,10 +68,10 @@ module KilometreTrackable
     notes_text = pending_notes || "Kilometres #{event_type}d from #{old_value || 0} to #{new_value || 0}"
 
     kilometre_logs.create(
-      event_type: event_type,
+      event_type:     event_type,
       previous_value: old_value || 0,
-      new_value: new_value || 0,
-      notes: notes_text
+      new_value:      new_value || 0,
+      notes:          notes_text
     )
 
     self.pending_notes = nil

@@ -18,9 +18,9 @@ RSpec.describe "Ride Recording", type: :request do
       chain && chainring && cassette && front_tire && rear_tire && front_brake && rear_brake
 
       post "/api/v1/bicycles/#{bicycle.id}/record_ride",
-        params: { distance: 50.0, notes: "Morning ride" },
+        params:  { distance: 50.0, notes: "Morning ride" },
         headers: jwt_auth_headers(user),
-        as: :json
+        as:      :json
 
       expect(response).to have_http_status(:ok)
       expect(json_response[:success]).to be true
@@ -43,7 +43,7 @@ RSpec.describe "Ride Recording", type: :request do
     it "requires authentication" do
       post "/api/v1/bicycles/#{bicycle.id}/record_ride",
         params: { distance: 25.0, notes: "Morning ride" },
-        as: :json
+        as:     :json
 
       expect(response).to have_http_status(:unauthorized)
       expect(json_response[:success]).to be false
@@ -54,9 +54,9 @@ RSpec.describe "Ride Recording", type: :request do
 
     it "validates distance parameter" do
       post "/api/v1/bicycles/#{bicycle.id}/record_ride",
-        params: { distance: 0, notes: "Morning ride" },
+        params:  { distance: 0, notes: "Morning ride" },
         headers: jwt_auth_headers(user),
-        as: :json
+        as:      :json
 
       expect(response).to have_http_status(:unprocessable_entity)
       expect(json_response[:success]).to be false
@@ -67,9 +67,9 @@ RSpec.describe "Ride Recording", type: :request do
 
     it "validates distance parameter missing" do
       post "/api/v1/bicycles/#{bicycle.id}/record_ride",
-        params: {},
+        params:  {},
         headers: jwt_auth_headers(user),
-        as: :json
+        as:      :json
 
 
       expect(response).to have_http_status(:unprocessable_entity)
@@ -83,9 +83,9 @@ RSpec.describe "Ride Recording", type: :request do
       other_user = create(:user)
 
       post "/api/v1/bicycles/#{bicycle.id}/record_ride",
-        params: { distance: 25.0, notes: "Morning ride" },
+        params:  { distance: 25.0, notes: "Morning ride" },
         headers: jwt_auth_headers(other_user),
-        as: :json
+        as:      :json
 
       expect(response).to have_http_status(:forbidden)
       expect(json_response[:success]).to be false
@@ -96,9 +96,9 @@ RSpec.describe "Ride Recording", type: :request do
 
     it "handles non-existent bicycle" do
       post "/api/v1/bicycles/99999/record_ride",
-        params: { distance: 25.0, notes: "Morning ride" },
+        params:  { distance: 25.0, notes: "Morning ride" },
         headers: jwt_auth_headers(user),
-        as: :json
+        as:      :json
 
       expect(response).to have_http_status(:not_found)
       expect(json_response[:success]).to be false

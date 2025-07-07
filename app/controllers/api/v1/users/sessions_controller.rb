@@ -16,9 +16,8 @@ class Api::V1::Users::SessionsController < Devise::SessionsController
 
       response = Api::V1::ResponseService.success(
         {
-          user: Api::V1::UserSerializer.new(user).as_json,
-          token: jwt_token
-        },
+          user:  Api::V1::UserSerializer.new(user).as_json,
+          token: jwt_token },
         "Logged in successfully."
       )
 

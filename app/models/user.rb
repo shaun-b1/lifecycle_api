@@ -8,12 +8,12 @@ class User < ApplicationRecord
          jwt_revocation_strategy: self
 
   validates :name, presence: true
-  validates :email, presence: true,
-                    format: { with: URI::MailTo::EMAIL_REGEXP },
+  validates :email, presence:   true,
+                    format:     { with: URI::MailTo::EMAIL_REGEXP },
                     uniqueness: { case_sensitive: false }
   validates :password, presence: true,
-                       length: { minimum: 6 },
-                       if: :password_required?
+                       length:   { minimum: 6 },
+                       if:       :password_required?
 
   private
 

@@ -34,9 +34,9 @@ class Api::V1::BicyclesController < ApplicationController
 
     begin
       if params[:full_service].present? && params[:full_service] == "true"
-        MaintenanceService.record_full_service(@bicycle, notes)
+        Api::V1::MaintenanceService.record_full_service(@bicycle, notes)
       else
-        MaintenanceService.record_bicycle_maintenance(@bicycle, components, notes)
+        Api::V1::MaintenanceService.record_bicycle_maintenance(@bicycle, components, notes)
       end
 
       response = Api::V1::ResponseService.success(

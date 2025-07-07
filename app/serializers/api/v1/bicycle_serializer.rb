@@ -28,7 +28,8 @@ class Api::V1::BicycleSerializer < ActiveModel::Serializer
       hash["cassette"] = Api::V1::ComponentSerializer.new(object.cassette) if object.cassette.present?
       hash["chainring"] = Api::V1::ComponentSerializer.new(object.chainring) if object.chainring.present?
       hash["tires"] = object.tires.map { |tire| Api::V1::ComponentSerializer.new(tire) } if object.tires.present?
-      hash["brakepads"] = object.brakepads.map { |brakepad| Api::V1::ComponentSerializer.new(brakepad) } if object.brakepads.present?
+      hash["brakepads"] = object.brakepads.map { |brakepad|
+ Api::V1::ComponentSerializer.new(brakepad) } if object.brakepads.present?
     end
     hash
   end

@@ -15,18 +15,16 @@ Rails.application.routes.draw do
       end
 
       devise_for :users,
-      path: "",
-      path_names: {
-        sign_in: "login",
-        sign_out: "logout",
-        registration: "register"
-      },
+      path:        "",
+      path_names:  {
+        sign_in:      "login",
+        sign_out:     "logout",
+        registration: "register" },
       controllers: {
-        sessions: "api/v1/users/sessions",
-        registrations: "api/v1/users/registrations"
-      }
+        sessions:      "api/v1/users/sessions",
+        registrations: "api/v1/users/registrations" }
     end
   end
 
-  get "up" => "rails/health#show", as: :rails_health_check
+  get "up" => "rails/health#show", :as => :rails_health_check
 end

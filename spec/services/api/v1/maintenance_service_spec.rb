@@ -68,7 +68,8 @@ RSpec.describe Api::V1::MaintenanceService, type: :service do
       cassette = create(:cassette, bicycle: bicycle, kilometres: 800)
       tire = create(:tire, bicycle: bicycle, kilometres: 300)
 
-      result = Api::V1::MaintenanceService.record_bicycle_maintenance(bicycle, [ :chain, :cassette ], "Drivetrain service")
+      result = Api::V1::MaintenanceService.record_bicycle_maintenance(bicycle, [ :chain, :cassette ],
+"Drivetrain service")
 
       expect(bicycle.reload.kilometres).to eq(0)
       expect(chain.reload.kilometres).to eq(0)
@@ -97,7 +98,8 @@ RSpec.describe Api::V1::MaintenanceService, type: :service do
       front_brakepads = create(:brakepad, bicycle: bicycle, kilometres: 200)
       rear_brakepads = create(:brakepad, bicycle: bicycle, kilometres: 300)
 
-      result = Api::V1::MaintenanceService.record_bicycle_maintenance(bicycle, [ :tires, :brakepads ], "Replace tires and brakepads")
+      result = Api::V1::MaintenanceService.record_bicycle_maintenance(bicycle, [ :tires, :brakepads ],
+"Replace tires and brakepads")
 
       front_tire_log = front_tire.kilometre_logs.order(:created_at).last
       rear_tire_log = rear_tire.kilometre_logs.order(:created_at).last
@@ -150,7 +152,8 @@ RSpec.describe Api::V1::MaintenanceService, type: :service do
 
       result = nil
       expect {
-        result = Api::V1::MaintenanceService.record_bicycle_maintenance(bicycle, [ :chain, :cassette ], "Routine maintenance")
+        result = Api::V1::MaintenanceService.record_bicycle_maintenance(bicycle, [ :chain, :cassette ],
+"Routine maintenance")
       }.not_to raise_error
 
       expect(chain.reload.kilometres).to eq(0)

@@ -7,12 +7,11 @@ RSpec.describe Api::V1::ComponentSerializer do
   # Test each component type
   describe 'serialization' do
     component_types = {
-      chain: Chain,
-      cassette: Cassette,
+      chain:     Chain,
+      cassette:  Cassette,
       chainring: Chainring,
-      tire: Tire,
-      brakepad: Brakepad
-    }
+      tire:      Tire,
+      brakepad:  Brakepad }
 
     component_types.each do |component_name, component_class|
       context "with a #{component_name}" do

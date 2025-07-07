@@ -23,21 +23,20 @@ module Api
 
       # Mapping of symbols to status codes
       SYMBOL_MAPPING = {
-        ok: OK,
-        created: CREATED,
-        accepted: ACCEPTED,
-        no_content: NO_CONTENT,
-        bad_request: BAD_REQUEST,
-        unauthorized: UNAUTHORIZED,
-        forbidden: FORBIDDEN,
-        not_found: NOT_FOUND,
-        method_not_allowed: METHOD_NOT_ALLOWED,
-        unprocessable_entity: UNPROCESSABLE_ENTITY,
-        too_many_requests: TOO_MANY_REQUESTS,
+        ok:                    OK,
+        created:               CREATED,
+        accepted:              ACCEPTED,
+        no_content:            NO_CONTENT,
+        bad_request:           BAD_REQUEST,
+        unauthorized:          UNAUTHORIZED,
+        forbidden:             FORBIDDEN,
+        not_found:             NOT_FOUND,
+        method_not_allowed:    METHOD_NOT_ALLOWED,
+        unprocessable_entity:  UNPROCESSABLE_ENTITY,
+        too_many_requests:     TOO_MANY_REQUESTS,
         internal_server_error: INTERNAL_SERVER_ERROR,
-        not_implemented: NOT_IMPLEMENTED,
-        service_unavailable: SERVICE_UNAVAILABLE
-      }.freeze
+        not_implemented:       NOT_IMPLEMENTED,
+        service_unavailable:   SERVICE_UNAVAILABLE }.freeze
 
       # Get numeric status code from symbol
       def self.code_for(symbol)

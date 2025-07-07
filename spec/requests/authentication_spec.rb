@@ -9,14 +9,12 @@ RSpec.describe "Authentication", type: :request do
     it "can sign in a user and access protected resources" do
       login_params = {
         user: {
-          email: user.email,
-          password: user.password
-        }
-      }
+          email:    user.email,
+          password: user.password } }
 
       post "/api/v1/login",
            params: login_params,
-           as: :json
+           as:     :json
 
       expect(response).to have_http_status(:ok)
       token = response.headers['Authorization']&.split(' ')&.last
@@ -26,8 +24,7 @@ RSpec.describe "Authentication", type: :request do
       get "/api/v1/bicycles/#{bicycle.id}",
           headers: {
             "Authorization" => "Bearer #{token}",
-            "Accept" => "application/json"
-          }
+            "Accept"        => "application/json" }
 
       expect(response).to have_http_status(:ok)
       expect(JSON.parse(response.body)["data"]["name"]).to eq(bicycle.name)
@@ -38,11 +35,9 @@ RSpec.describe "Authentication", type: :request do
         post "/api/v1/login",
              params: {
                user: {
-                 email: user.email,
-                 password: "wrongpassword"
-               }
-             },
-             as: :json
+                 email:    user.email,
+                 password: "wrongpassword" } },
+             as:     :json
 
         expect(response).to have_http_status(:unauthorized)
         expect(JSON.parse(response.body)).to have_key("error")
@@ -52,11 +47,9 @@ RSpec.describe "Authentication", type: :request do
         post "/api/v1/login",
              params: {
                user: {
-                 email: "nonexistent@example.com",
-                 password: "password123"
-               }
-             },
-             as: :json
+                 email:    "nonexistent@example.com",
+                 password: "password123" } },
+             as:     :json
 
         expect(response).to have_http_status(:unauthorized)
         expect(JSON.parse(response.body)).to have_key("error")
@@ -76,8 +69,7 @@ RSpec.describe "Authentication", type: :request do
         get "/api/v1/bicycles/#{bicycle.id}",
             headers: {
               "Authorization" => "Bearer invalid_token",
-              "Accept" => "application/json"
-            }
+              "Accept"        => "application/json" }
 
         expect(response).to have_http_status(:unauthorized)
         expect(JSON.parse(response.body)).to have_key("error")
@@ -90,11 +82,9 @@ RSpec.describe "Authentication", type: :request do
         post "/api/v1/login",
              params: {
                user: {
-                 email: user.email,
-                 password: user.password
-               }
-             },
-             as: :json
+                 email:    user.email,
+                 password: user.password } },
+             as:     :json
 
         token = response.headers['Authorization']&.split(' ')&.last
         expect(token).to be_present
@@ -103,8 +93,7 @@ RSpec.describe "Authentication", type: :request do
         delete "/api/v1/logout",
                headers: {
                  "Authorization" => "Bearer #{token}",
-                 "Accept" => "application/json"
-               }
+                 "Accept"        => "application/json" }
 
         expect(response).to have_http_status(:ok)
         expect(JSON.parse(response.body)["message"]).to eq("Logged out successfully.")
@@ -113,8 +102,7 @@ RSpec.describe "Authentication", type: :request do
         get "/api/v1/bicycles/#{bicycle.id}",
             headers: {
               "Authorization" => "Bearer #{token}",
-              "Accept" => "application/json"
-            }
+              "Accept"        => "application/json" }
 
         expect(response).to have_http_status(:unauthorized)
       end

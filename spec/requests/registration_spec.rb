@@ -5,12 +5,10 @@ RSpec.describe "Registration", type: :request do
   let(:valid_attributes) {
     {
       user: {
-        email: "test@example.com",
-        password: "password123",
+        email:                 "test@example.com",
+        password:              "password123",
         password_confirmation: "password123",
-        name: "Test User"
-      }
-    }
+        name:                  "Test User" } }
   }
 
   describe "POST /api/v1/register" do
@@ -19,14 +17,14 @@ RSpec.describe "Registration", type: :request do
        expect {
           post "/api/v1/register",
                params: valid_attributes,
-               as: :json
+               as:     :json
         }.to change(User, :count).by(1)
       end
 
       it "returns a created status" do
         post "/api/v1/register",
              params: valid_attributes,
-             as: :json
+             as:     :json
 
         expect(response).to have_http_status(:created)
         expect(JSON.parse(response.body)["message"]).to eq("Signed up successfully.")
@@ -35,7 +33,7 @@ RSpec.describe "Registration", type: :request do
       it "returns the created user data" do
         post "/api/v1/register",
              params: valid_attributes,
-             as: :json
+             as:     :json
 
         json_response = JSON.parse(response.body)
         expect(json_response["data"]["user"]["email"]).to eq("test@example.com")
@@ -51,16 +49,15 @@ RSpec.describe "Registration", type: :request do
         expect {
           post "/api/v1/register",
                params: invalid_attributes,
-               as: :json
+               as:     :json
         }.not_to change(User, :count)
 
         expect(json_response[:error]).to eq({
-          code: "VALIDATION_ERROR",
-          message: "User couldn't be created successfully",
-          details: [ "Email can't be blank", "Email is invalid" ],
-          status: 422,
-          status_text: "Unprocessable Entity"
-        })
+          code:        "VALIDATION_ERROR",
+          message:     "User couldn't be created successfully",
+          details:     [ "Email can't be blank", "Email is invalid" ],
+          status:      422,
+          status_text: "Unprocessable Entity" })
       end
 
       it "does not create a new User with invalid email format" do
@@ -70,16 +67,15 @@ RSpec.describe "Registration", type: :request do
         expect {
           post "/api/v1/register",
                params: invalid_attributes,
-               as: :json
+               as:     :json
         }.not_to change(User, :count)
 
         expect(json_response[:error]).to eq({
-          code: "VALIDATION_ERROR",
-          message: "User couldn't be created successfully",
-          details: [ "Email is invalid" ],
-          status: 422,
-          status_text: "Unprocessable Entity"
-        })
+          code:        "VALIDATION_ERROR",
+          message:     "User couldn't be created successfully",
+          details:     [ "Email is invalid" ],
+          status:      422,
+          status_text: "Unprocessable Entity" })
       end
 
       it "does not create a new User with mismatched passwords" do
@@ -89,16 +85,15 @@ RSpec.describe "Registration", type: :request do
         expect {
           post "/api/v1/register",
                params: invalid_attributes,
-               as: :json
+               as:     :json
         }.not_to change(User, :count)
 
         expect(json_response[:error]).to eq({
-          code: "VALIDATION_ERROR",
-          message: "User couldn't be created successfully",
-          details: [ "Password confirmation doesn't match Password" ],
-          status: 422,
-          status_text: "Unprocessable Entity"
-        })
+          code:        "VALIDATION_ERROR",
+          message:     "User couldn't be created successfully",
+          details:     [ "Password confirmation doesn't match Password" ],
+          status:      422,
+          status_text: "Unprocessable Entity" })
       end
 
       it "does not create a new User with too short password" do
@@ -109,16 +104,15 @@ RSpec.describe "Registration", type: :request do
         expect {
           post "/api/v1/register",
                params: invalid_attributes,
-               as: :json
+               as:     :json
         }.not_to change(User, :count)
 
         expect(json_response[:error]).to eq({
-          code: "VALIDATION_ERROR",
-          message: "User couldn't be created successfully",
-          details: [ "Password is too short (minimum is 6 characters)" ],
-          status: 422,
-          status_text: "Unprocessable Entity"
-        })
+          code:        "VALIDATION_ERROR",
+          message:     "User couldn't be created successfully",
+          details:     [ "Password is too short (minimum is 6 characters)" ],
+          status:      422,
+          status_text: "Unprocessable Entity" })
       end
 
       it "does not create a new User without a name" do
@@ -128,16 +122,15 @@ RSpec.describe "Registration", type: :request do
         expect {
           post "/api/v1/register",
                params: invalid_attributes,
-               as: :json
+               as:     :json
         }.not_to change(User, :count)
 
         expect(json_response[:error]).to eq({
-          code: "VALIDATION_ERROR",
-          message: "User couldn't be created successfully",
-          details: [ "Name can't be blank" ],
-          status: 422,
-          status_text: "Unprocessable Entity"
-        })
+          code:        "VALIDATION_ERROR",
+          message:     "User couldn't be created successfully",
+          details:     [ "Name can't be blank" ],
+          status:      422,
+          status_text: "Unprocessable Entity" })
       end
 
       it "does not create a User with duplicate email" do
@@ -146,16 +139,15 @@ RSpec.describe "Registration", type: :request do
         expect {
           post "/api/v1/register",
                params: valid_attributes,
-               as: :json
+               as:     :json
         }.not_to change(User, :count)
 
         expect(json_response[:error]).to eq({
-          code: "VALIDATION_ERROR",
-          message: "User couldn't be created successfully",
-          details: [ "Email has already been taken" ],
-          status: 422,
-          status_text: "Unprocessable Entity"
-        })
+          code:        "VALIDATION_ERROR",
+          message:     "User couldn't be created successfully",
+          details:     [ "Email has already been taken" ],
+          status:      422,
+          status_text: "Unprocessable Entity" })
       end
     end
   end

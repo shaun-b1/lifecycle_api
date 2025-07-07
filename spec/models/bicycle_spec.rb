@@ -9,12 +9,11 @@ RSpec.describe Bicycle, type: :model do
         limits = bicycle.base_wear_limits
 
         expect(limits).to eq({
-          chain: 3500,
-          cassette: 10000,
+          chain:     3500,
+          cassette:  10000,
           chainring: 18000,
-          tire: 5500,
-          brakepad: 4000
-        })
+          tire:      5500,
+          brakepad:  4000 })
       end
     end
 
@@ -160,9 +159,11 @@ RSpec.describe Bicycle, type: :model do
         end
 
         context "realistic scenarios" do
-          let (:mountain_biker_bike) { create(:bicycle, user: user, terrain: "mountainous", weather: 'mixed', particulate: 'medium') }
+          let (:mountain_biker_bike) {
+ create(:bicycle, user: user, terrain: "mountainous", weather: 'mixed', particulate: 'medium') }
           let (:commuter_bike) { create(:bicycle, user: user, terrain: "flat", weather: 'dry', particulate: 'high') }
-          let (:weekend_cyclist_bike) { create(:bicycle, user: user, terrain: "hilly", weather: 'mixed', particulate: 'low') }
+          let (:weekend_cyclist_bike) {
+ create(:bicycle, user: user, terrain: "hilly", weather: 'mixed', particulate: 'low') }
 
           let (:mountain_biker_multipliers) { mountain_biker_bike.wear_multipliers }
           let (:commuter_multipliers) { commuter_bike.wear_multipliers }
@@ -299,7 +300,8 @@ RSpec.describe Bicycle, type: :model do
       expect(bike_status[:cassette][:wear_percentage]).to eq(0)
     end
     it "includes bicycle summary information" do
-      bicycle = create(:bicycle, user: user, kilometres: 0, terrain: 'mountainous', weather: 'mixed', particulate: 'low')
+      bicycle = create(:bicycle, user: user, kilometres: 0, terrain: 'mountainous', weather: 'mixed',
+particulate: 'low')
       bike_status = bicycle.component_status
 
       expect(bike_status[:bicycle][:kilometres]).to eq(0)

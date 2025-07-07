@@ -37,7 +37,8 @@ module BicycleComponent
 
     if existing.count >= self.class.max_components
       component_name = self.class.name.underscore.humanize.downcase
-      errors.add(:bicycle_id, "already has #{existing.count == 1 ? 'a' : self.class.max_components} #{component_name}#{existing.count == 1 ? '' : 's'}")
+      errors.add(:bicycle_id,
+"already has #{existing.count == 1 ? 'a' : self.class.max_components} #{component_name}#{existing.count == 1 ? '' : 's'}")
     end
   end
 end
