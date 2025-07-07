@@ -6,6 +6,24 @@ FactoryBot.define do
     model { "Model #{Faker::Alphanumeric.alpha(number: 5)}" }
     kilometres { 0.0 }
 
+    trait :mountain_biker do
+      terrain { "mountainous" }
+      weather { "mixed" }
+      particulate { "medium" }
+    end
+
+    trait :commuter do
+      terrain { "flat" }
+      weather { "dry" }
+      particulate { "high" }
+    end
+
+    trait :weekend_cyclist do
+      terrain { "hilly" }
+      weather { "mixed" }
+      particulate { "low" }
+    end
+
     # Nested factory for a bicycle with components
     factory :bicycle_with_components do
       after(:create) do |bicycle|

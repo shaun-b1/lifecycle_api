@@ -4,8 +4,8 @@ module AuthHelpers
       {
         sub: user.id,
         exp: 24.hours.from_now.to_i,
-        jti: user.jti  # Add the jti claim
-      },
+        jti: user.jti
+      },  # Add the jti claim
       Rails.application.credentials.devise_jwt_secret_key,
       'HS256'
     )

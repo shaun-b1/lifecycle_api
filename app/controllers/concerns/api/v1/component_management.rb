@@ -10,7 +10,8 @@ module ::Api::V1::ComponentManagement
     authorize @component
 
     response = Api::V1::ResponseService.success(
-      ActiveModelSerializers::SerializableResource.new(@component, serializer: component_serializer).as_json,
+      ActiveModelSerializers::SerializableResource.new(@component,
+        serializer: component_serializer).as_json,
       "#{component_class.name} retrieved successfully"
     )
 
@@ -23,7 +24,8 @@ module ::Api::V1::ComponentManagement
 
     if @component.save
       response_data = Api::V1::ResponseService.created(
-        ActiveModelSerializers::SerializableResource.new(@component, serializer: component_serializer).as_json,
+        ActiveModelSerializers::SerializableResource.new(@component,
+          serializer: component_serializer).as_json,
         "#{component_class.name} created successfully"
       )
 
@@ -41,7 +43,8 @@ module ::Api::V1::ComponentManagement
 
     if @component.update(component_params)
       response_data = Api::V1::ResponseService.updated(
-        ActiveModelSerializers::SerializableResource.new(@component, serializer: component_serializer).as_json,
+        ActiveModelSerializers::SerializableResource.new(@component,
+          serializer: component_serializer).as_json,
         "#{component_class.name} updated successfully"
       )
       render response_data
@@ -68,7 +71,7 @@ module ::Api::V1::ComponentManagement
 
   def set_bicycle
     @bicycle = Bicycle.find(params[:bicycle_id])
-    rescue ActiveRecord::RecordNotFound
+  rescue ActiveRecord::RecordNotFound
       raise Api::V1::Errors::ResourceNotFoundError.new(
         "Bicycle with ID #{params[:bicycle_id]} not found"
       )
@@ -88,7 +91,7 @@ module ::Api::V1::ComponentManagement
 
   def set_component
     @component = find_component
-    rescue ActiveRecord::RecordNotFound
+  rescue ActiveRecord::RecordNotFound
       raise Api::V1::Errors::ResourceNotFoundError.new(
         "#{component_class.name} with ID #{params[:id]} not found for Bicycle #{params[:bicycle_id]}"
       )
@@ -114,7 +117,7 @@ module ::Api::V1::ComponentManagement
 
   def component_params
     params.require(component_param_key).permit(:brand, :kilometres)
-    rescue ActionController::ParameterMissing => e
+  rescue ActionController::ParameterMissing => e
       raise Api::V1::Errors::ParameterMissingError.new(component_param_key)
   end
 

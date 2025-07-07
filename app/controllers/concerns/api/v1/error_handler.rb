@@ -78,7 +78,8 @@ module Api::V1::ErrorHandler
   end
 
   def handle_expired_token
-    error = Api::V1::Errors::TokenError.new("Authentication token has expired", [ "Token has expired" ])
+    error = Api::V1::Errors::TokenError.new("Authentication token has expired",
+      [ "Token has expired" ])
     render json: error.to_hash, status: error.status
   end
 

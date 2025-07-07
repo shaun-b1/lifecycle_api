@@ -17,9 +17,9 @@ RSpec.describe "Maintenance", type: :request do
   describe "POST /api/v1/bicycles/:id/record_maintenance" do
     it "resets specific components via API" do
       post "/api/v1/bicycles/#{bicycle.id}/record_maintenance",
-           params:  { components: [ "chain", "cassette" ], notes: "Chain and cassette service" },
-           headers: jwt_auth_headers(user),
-           as:      :json
+        params: { components: [ "chain", "cassette" ], notes: "Chain and cassette service" },
+        headers: jwt_auth_headers(user),
+        as: :json
 
       expect(response).to have_http_status(:ok)
       expect(json_response[:success]).to be true
@@ -42,9 +42,9 @@ RSpec.describe "Maintenance", type: :request do
 
     it "handles full service parameter" do
       post "/api/v1/bicycles/#{bicycle.id}/record_maintenance",
-           params:  { full_service: "true", notes: "Complete overhaul" },
-           headers: jwt_auth_headers(user),
-           as:      :json
+        params: { full_service: "true", notes: "Complete overhaul" },
+        headers: jwt_auth_headers(user),
+        as: :json
 
       expect(response).to have_http_status(:ok)
       expect(json_response[:success]).to be true
@@ -52,19 +52,21 @@ RSpec.describe "Maintenance", type: :request do
 
       [
         bicycle, chain, cassette, chainring, front_tire, rear_tire, front_brake,
-        rear_brake ].each do |component|
+        rear_brake
+      ].each do |component|
         expect(component.reload.kilometres).to eq(0)
       end
 
       {
-        bicycle:     100,
-        chain:       150,
-        cassette:    180,
-        chainring:   200,
-        front_tire:  120,
-        rear_tire:   130,
+        bicycle: 100,
+        chain: 150,
+        cassette: 180,
+        chainring: 200,
+        front_tire: 120,
+        rear_tire: 130,
         front_brake: 90,
-        rear_brake:  95 }.each do |component_name, initial_km|
+        rear_brake: 95
+      }.each do |component_name, initial_km|
         component = send(component_name)
         expect_maintenance_log(component, previous: initial_km, new: 0)
       end
@@ -72,9 +74,9 @@ RSpec.describe "Maintenance", type: :request do
 
     it "full service overrides components parameter" do
       post "/api/v1/bicycles/#{bicycle.id}/record_maintenance",
-           params:  { full_service: "true", components: [ "chain" ], notes: "Full service wins" },
-           headers: jwt_auth_headers(user),
-           as:      :json
+        params: { full_service: "true", components: [ "chain" ], notes: "Full service wins" },
+        headers: jwt_auth_headers(user),
+        as: :json
 
       expect(response).to have_http_status(:ok)
       expect(json_response[:success]).to be true
@@ -82,19 +84,21 @@ RSpec.describe "Maintenance", type: :request do
 
       [
         bicycle, chain, cassette, chainring, front_tire, rear_tire, front_brake,
-        rear_brake ].each do |component|
+        rear_brake
+      ].each do |component|
         expect(component.reload.kilometres).to eq(0)
       end
 
       {
-        bicycle:     100,
-        chain:       150,
-        cassette:    180,
-        chainring:   200,
-        front_tire:  120,
-        rear_tire:   130,
+        bicycle: 100,
+        chain: 150,
+        cassette: 180,
+        chainring: 200,
+        front_tire: 120,
+        rear_tire: 130,
         front_brake: 90,
-        rear_brake:  95 }.each do |component_name, initial_km|
+        rear_brake: 95
+      }.each do |component_name, initial_km|
         component = send(component_name)
         expect_maintenance_log(component, previous: initial_km, new: 0)
       end
@@ -208,7 +212,7 @@ RSpec.describe "Maintenance", type: :request do
     components.each do |component|
       maintenance_logs_count = component.kilometre_logs.maintenance.count
       expect(maintenance_logs_count).to eq(0),
-                                        "Expected no maintenance logs for unchanged #{component.class.name}"
+        "Expected no maintenance logs for unchanged #{component.class.name}"
     end
   end
 end

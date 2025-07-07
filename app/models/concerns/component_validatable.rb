@@ -3,9 +3,11 @@ module ComponentValidatable
 
   included do
     validates :brand, presence: true, length: { minimum: 2, maximum: 50 }
-    validates :brand, format: {
-      with:    /\A[a-zA-Z0-9\s\-&'\.]+\z/,
-      message: "can only contain letters, numbers, spaces, hyphens, ampersands, apostrophes, and periods" }
+    validates :brand,
+      format: {
+        with: /\A[a-zA-Z0-9\s\-&'\.]+\z/,
+        message: "can only contain letters, numbers, spaces, hyphens, ampersands, apostrophes, and periods"
+      }
 
     before_validation :normalize_brand_name
   end

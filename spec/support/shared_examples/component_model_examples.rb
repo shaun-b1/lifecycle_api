@@ -19,8 +19,10 @@ RSpec.shared_examples "a bicycle component" do
 
       # Try to create second component for same bicycle
       duplicate_component = build(described_class.to_s.underscore.to_sym, bicycle: bicycle)
+
+      component_name = described_class.to_s.underscore.humanize.downcase
       expect(duplicate_component).not_to be_valid
-      expect(duplicate_component.errors[:bicycle_id]).to include("already has a #{described_class.to_s.underscore.humanize.downcase}")
+      expect(duplicate_component.errors[:bicycle_id]).to include("already has a #{component_name}")
     end
   end
 end

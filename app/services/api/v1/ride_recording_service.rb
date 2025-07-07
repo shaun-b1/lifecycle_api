@@ -21,9 +21,11 @@ class Api::V1::RideRecordingService
         )
       end
 
-      [ bicycle.chain, bicycle.chainring, bicycle.cassette, *bicycle.tires,
-*bicycle.brakepads ].compact.each do |component|
-        component_updated = component.add_kilometres(distance, "Component distance updated from bicycle ride")
+      [
+        bicycle.chain, bicycle.chainring, bicycle.cassette, *bicycle.tires, *bicycle.brakepads
+      ].compact.each do |component|
+        component_updated = component.add_kilometres(distance,
+          "Component distance updated from bicycle ride")
 
         unless component_updated
           raise Api::V1::Errors::ValidationError.new(

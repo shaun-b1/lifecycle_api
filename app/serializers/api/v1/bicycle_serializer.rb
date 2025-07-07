@@ -24,13 +24,22 @@ class Api::V1::BicycleSerializer < ActiveModel::Serializer
   def attributes(*args)
     hash = super
     if @show_components
-      hash["chain"] = Api::V1::ComponentSerializer.new(object.chain) if object.chain.present?
-      hash["cassette"] = Api::V1::ComponentSerializer.new(object.cassette) if object.cassette.present?
-      hash["chainring"] = Api::V1::ComponentSerializer.new(object.chainring) if object.chainring.present?
-      hash["tires"] = object.tires.map { |tire| Api::V1::ComponentSerializer.new(tire) } if object.tires.present?
-      hash["brakepads"] = object.brakepads.map { |brakepad|
- Api::V1::ComponentSerializer.new(brakepad) } if object.brakepads.present?
+      hash["chain"] = serialize_component(object.chain)
+      hash["cassette"] = serialize_component(object.cassette)
+      hash["chainring"] = serialize_component(object.chainring)
+      hash["tires"] = serialize_components(object.tires)
+      hash["brakepads"] = serialize_components(object.brakepads)
     end
     hash
+  end
+
+  private
+
+  def serialize_component(component)
+    Api::V1::ComponentSerializer.new(component) if component.present?
+  end
+
+  def serialize_components(components)
+    components.map { |component| Api::V1::ComponentSerializer.new(component) } if components.present?
   end
 end

@@ -9,11 +9,12 @@ RSpec.describe Bicycle, type: :model do
         limits = bicycle.base_wear_limits
 
         expect(limits).to eq({
-          chain:     3500,
-          cassette:  10000,
+          chain: 3500,
+          cassette: 10000,
           chainring: 18000,
-          tire:      5500,
-          brakepad:  4000 })
+          tire: 5500,
+          brakepad: 4000
+        })
       end
     end
 
@@ -144,8 +145,16 @@ RSpec.describe Bicycle, type: :model do
 
       describe "multiple environmental factor impact on cycling components" do
         it "multiple harsh factors compound wear" do
-          low_wear_bike = create(:bicycle, user: user, terrain: "flat", weather: 'dry', particulate: 'low')
-          high_wear_bike = create(:bicycle, user: user, terrain: "mountainous", weather: 'wet', particulate: 'high')
+          low_wear_bike = create(:bicycle,
+            user: user,
+            terrain: "flat",
+            weather: 'dry',
+            particulate: 'low')
+          high_wear_bike = create(:bicycle,
+            user: user,
+            terrain: "mountainous",
+            weather: 'wet',
+            particulate: 'high')
 
           components = [ :chain, :cassette, :brakepad, :tire, :chainring ]
 
@@ -159,34 +168,40 @@ RSpec.describe Bicycle, type: :model do
         end
 
         context "realistic scenarios" do
-          let (:mountain_biker_bike) {
- create(:bicycle, user: user, terrain: "mountainous", weather: 'mixed', particulate: 'medium') }
-          let (:commuter_bike) { create(:bicycle, user: user, terrain: "flat", weather: 'dry', particulate: 'high') }
-          let (:weekend_cyclist_bike) {
- create(:bicycle, user: user, terrain: "hilly", weather: 'mixed', particulate: 'low') }
+          let(:mountain_bike) { create(:bicycle, :mountain_biker, user: user) }
+          let(:commuter_bike) { create(:bicycle, :commuter, user: user) }
+          let(:weekend_bike) { create(:bicycle, :weekend_cyclist, user: user) }
 
-          let (:mountain_biker_multipliers) { mountain_biker_bike.wear_multipliers }
-          let (:commuter_multipliers) { commuter_bike.wear_multipliers }
-          let (:weekend_cyclist_multipliers) { weekend_cyclist_bike.wear_multipliers }
+          let(:mountain_multipliers) { mountain_bike.wear_multipliers }
+          let(:commuter_multipliers) { commuter_bike.wear_multipliers }
+          let(:weekend_multipliers) { weekend_bike.wear_multipliers }
 
           it "models realistic component wear patterns for different cycling styles" do
-            mountain_biker_brakes = mountain_biker_multipliers[:brakepad]
+            mountain_biker_brakes = mountain_multipliers[:brakepad]
             commuter_brakes = commuter_multipliers[:brakepad]
             expect(mountain_biker_brakes).to be > commuter_brakes
 
-            mountain_chain = mountain_biker_multipliers[:chain]
-            weekend_chain = weekend_cyclist_multipliers[:chain]
+            mountain_chain = mountain_multipliers[:chain]
+            weekend_chain = weekend_multipliers[:chain]
             commuter_chain = commuter_multipliers[:chain]
             expect(mountain_chain).to be > commuter_chain
             expect(commuter_chain).to be > weekend_chain
 
-            expect(mountain_biker_bike.adjusted_wear_limits[:chain]).to be > 500
+            expect(mountain_bike.adjusted_wear_limits[:chain]).to be > 500
             expect(commuter_bike.adjusted_wear_limits[:brakepad]).to be > 1000
           end
         end
         it "still returns reasonable limits on component wear" do
-          low_wear_bike = create(:bicycle, user: user, terrain: "flat", weather: 'dry', particulate: 'low')
-          high_wear_bike = create(:bicycle, user: user, terrain: "mountainous", weather: 'wet', particulate: 'high')
+          low_wear_bike = create(:bicycle,
+            user: user,
+            terrain: "flat",
+            weather: 'dry',
+            particulate: 'low')
+          high_wear_bike = create(:bicycle,
+            user: user,
+            terrain: "mountainous",
+            weather: 'wet',
+            particulate: 'high')
 
           low_wear_limits = low_wear_bike.adjusted_wear_limits
           high_wear_limits = high_wear_bike.adjusted_wear_limits
@@ -300,8 +315,12 @@ RSpec.describe Bicycle, type: :model do
       expect(bike_status[:cassette][:wear_percentage]).to eq(0)
     end
     it "includes bicycle summary information" do
-      bicycle = create(:bicycle, user: user, kilometres: 0, terrain: 'mountainous', weather: 'mixed',
-particulate: 'low')
+      bicycle = create(:bicycle,
+        user: user,
+        kilometres: 0,
+        terrain: 'mountainous',
+        weather: 'mixed',
+        particulate: 'low')
       bike_status = bicycle.component_status
 
       expect(bike_status[:bicycle][:kilometres]).to eq(0)
@@ -311,7 +330,11 @@ particulate: 'low')
       expect(bike_status[:bicycle][:riding_environment][:particulate]).to eq("Low particulate")
     end
     it "handles edge cases in wear calculation" do
-      bicycle = create(:bicycle, user: user, terrain: 'mountainous', weather: 'wet', particulate: 'high')
+      bicycle = create(:bicycle,
+        user: user,
+        terrain: 'mountainous',
+        weather: 'wet',
+        particulate: 'high')
       create(:chain, bicycle: bicycle, kilometres: 2000)
       bike_status = bicycle.component_status
 

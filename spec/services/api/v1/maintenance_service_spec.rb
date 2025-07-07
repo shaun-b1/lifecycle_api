@@ -68,8 +68,9 @@ RSpec.describe Api::V1::MaintenanceService, type: :service do
       cassette = create(:cassette, bicycle: bicycle, kilometres: 800)
       tire = create(:tire, bicycle: bicycle, kilometres: 300)
 
-      result = Api::V1::MaintenanceService.record_bicycle_maintenance(bicycle, [ :chain, :cassette ],
-"Drivetrain service")
+      result = Api::V1::MaintenanceService.record_bicycle_maintenance(bicycle,
+        [ :chain, :cassette ],
+        "Drivetrain service")
 
       expect(bicycle.reload.kilometres).to eq(0)
       expect(chain.reload.kilometres).to eq(0)
@@ -84,7 +85,7 @@ RSpec.describe Api::V1::MaintenanceService, type: :service do
       expect(chain_log.event_type).to eq("maintenance")
 
       cassette_log = cassette.kilometre_logs.order(:created_at).last
-      expect(cassette_log.event_type).to include("maintenance")
+      expect(cassette_log.event_type).to eq("maintenance")
 
       tire_logs_count_before = tire.kilometre_logs.maintenance.count
       expect(tire.kilometre_logs.maintenance.count).to eq(tire_logs_count_before)
@@ -98,8 +99,9 @@ RSpec.describe Api::V1::MaintenanceService, type: :service do
       front_brakepads = create(:brakepad, bicycle: bicycle, kilometres: 200)
       rear_brakepads = create(:brakepad, bicycle: bicycle, kilometres: 300)
 
-      result = Api::V1::MaintenanceService.record_bicycle_maintenance(bicycle, [ :tires, :brakepads ],
-"Replace tires and brakepads")
+      result = Api::V1::MaintenanceService.record_bicycle_maintenance(bicycle,
+        [ :tires, :brakepads ],
+        "Replace tires and brakepads")
 
       front_tire_log = front_tire.kilometre_logs.order(:created_at).last
       rear_tire_log = rear_tire.kilometre_logs.order(:created_at).last
@@ -152,8 +154,9 @@ RSpec.describe Api::V1::MaintenanceService, type: :service do
 
       result = nil
       expect {
-        result = Api::V1::MaintenanceService.record_bicycle_maintenance(bicycle, [ :chain, :cassette ],
-"Routine maintenance")
+        result = Api::V1::MaintenanceService.record_bicycle_maintenance(bicycle,
+          [ :chain, :cassette ],
+          "Routine maintenance")
       }.not_to raise_error
 
       expect(chain.reload.kilometres).to eq(0)
@@ -174,7 +177,9 @@ RSpec.describe Api::V1::MaintenanceService, type: :service do
       )
 
       expect {
-        Api::V1::MaintenanceService.record_bicycle_maintenance(bicycle, [ :chain, :cassette ], "Regular maintenance")
+        Api::V1::MaintenanceService.record_bicycle_maintenance(bicycle,
+          [ :chain, :cassette ],
+          "Regular maintenance")
       }.to raise_error(Api::V1::Errors::ValidationError)
 
       expect(bicycle.reload.kilometres).to eq(2000)
@@ -182,10 +187,13 @@ RSpec.describe Api::V1::MaintenanceService, type: :service do
     end
 
     it "handles unexpected errors" do
-      allow(bicycle).to receive(:record_maintenance).and_raise(StandardError, "Database connection lost")
+      allow(bicycle).to receive(:record_maintenance).and_raise(StandardError,
+        "Database connection lost")
 
       expect {
-        Api::V1::MaintenanceService.record_bicycle_maintenance(bicycle, [ :chain ], "Test maintenance")
+        Api::V1::MaintenanceService.record_bicycle_maintenance(bicycle,
+          [ :chain ],
+          "Test maintenance")
       }.to raise_error(Api::V1::Errors::ApiError) do |error|
         expect(error.error_code).to eq("MAINTENANCE_RECORDING_ERROR")
         expect(error.message).to include("unexpected error occurred")
@@ -210,7 +218,10 @@ RSpec.describe Api::V1::MaintenanceService, type: :service do
       expect(bicycle_log.event_type).to eq("maintenance")
       expect(bicycle_log.notes).to include("Complete overhaul")
 
-      components = [ cassette, chain, chainring, front_brakepads, rear_brakepads, front_tire, rear_tire ]
+      components = [
+        cassette, chain, chainring, front_brakepads, rear_brakepads, front_tire,
+        rear_tire
+      ]
       components.each do |component|
         expect(component.reload.kilometres).to eq(0)
       end
@@ -232,8 +243,8 @@ RSpec.describe Api::V1::MaintenanceService, type: :service do
     end
 
     it "delegates to record_bicycle_maintenance correctly" do
-      expect(Api::V1::MaintenanceService).to receive(:record_bicycle_maintenance)
-        .with(bicycle, [ :chain, :cassette, :chainring, :tires, :brakepads ], "Custom notes")
+      expect(Api::V1::MaintenanceService).to receive(:record_bicycle_maintenance).with(bicycle,
+        [ :chain, :cassette, :chainring, :tires, :brakepads ], "Custom notes")
 
       Api::V1::MaintenanceService.record_full_service(bicycle, "Custom notes")
     end

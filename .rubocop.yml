@@ -4,15 +4,15 @@ inherit_gem: { rubocop-rails-omakase: rubocop.yml }
 # Enable line length checking
 Layout/LineLength:
   Enabled: true
-  Max: 100
+  Max: 120
+  AllowedPatterns:
+    - '\A#'
+    - 'config\.'
 
 # Array formatting
-
-Layout/FirstArrayElementLineBreak:
-  Enabled: true
-
 Layout/ArrayAlignment:
   Enabled: true
+  EnforcedStyle: with_first_element
 
 Layout/FirstArrayElementIndentation:
   Enabled: true
@@ -20,13 +20,13 @@ Layout/FirstArrayElementIndentation:
 
 Layout/MultilineArrayBraceLayout:
   Enabled: true
-  EnforcedStyle: same_line
+  EnforcedStyle: new_line
 
 # Hash formatting
 Layout/HashAlignment:
   Enabled: true
-  EnforcedHashRocketStyle: table
-  EnforcedColonStyle: table
+  EnforcedColonStyle: key
+  EnforcedHashRocketStyle: key
 
 Layout/FirstHashElementIndentation:
   Enabled: true
@@ -34,21 +34,16 @@ Layout/FirstHashElementIndentation:
 
 Layout/MultilineHashBraceLayout:
   Enabled: true
-  EnforcedStyle: same_line
+  EnforcedStyle: new_line
 
-# Method call formatting
-Layout/MultilineMethodCallIndentation:
-  Enabled: true
-  EnforcedStyle: indented
-
+# Method arguments
 Layout/ArgumentAlignment:
   Enabled: true
+  EnforcedStyle: with_fixed_indentation
 
 Layout/FirstArgumentIndentation:
   Enabled: true
-
-Layout/MultilineMethodCallBraceLayout:
-  Enabled: true
+  EnforcedStyle: consistent
 # Overwrite or add rules to create your own house style
 #
 # # Use `[a, [b, c]]` not `[ a, [ b, c ] ]`

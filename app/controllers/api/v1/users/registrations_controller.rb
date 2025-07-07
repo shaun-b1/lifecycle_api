@@ -12,8 +12,9 @@ class Api::V1::Users::RegistrationsController < Devise::RegistrationsController
 
       response_data = Api::V1::ResponseService.created(
         {
-          user:  Api::V1::UserSerializer.new(resource).as_json,
-          token: jwt_token },
+          user: Api::V1::UserSerializer.new(resource).as_json,
+          token: jwt_token
+        },
         "Signed up successfully."
       )
 
@@ -39,7 +40,8 @@ class Api::V1::Users::RegistrationsController < Devise::RegistrationsController
     if resource.persisted?
       response_data = Api::V1::ResponseService.created(
         {
-          user: Api::V1::UserSerializer.new(resource).as_json },
+          user: Api::V1::UserSerializer.new(resource).as_json
+        },
         "Signed up successfully."
       )
 

@@ -17,14 +17,14 @@ RSpec.describe Api::V1::RideRecordingService, type: :service do
       expect {
         result = Api::V1::RideRecordingService.record(bicycle, 50.0, "Morning Ride")
       }.to change { bicycle.reload.kilometres }.from(0).to(50.0)
-      .and change { chain.reload.kilometres }.from(0).to(50.0)
-      .and change { chainring.reload.kilometres }.from(0).to(50.0)
-      .and change { cassette.reload.kilometres }.from(0).to(50.0)
-      .and change { tire1.reload.kilometres }.from(0).to(50.0)
-      .and change { tire2.reload.kilometres }.from(0).to(50.0)
-      .and change { brake1.reload.kilometres }.from(0).to(50.0)
-      .and change { brake2.reload.kilometres }.from(0).to(50.0)
-      .and change { KilometreLog.count }.by(8)
+        .and change { chain.reload.kilometres }.from(0).to(50.0)
+        .and change { chainring.reload.kilometres }.from(0).to(50.0)
+        .and change { cassette.reload.kilometres }.from(0).to(50.0)
+        .and change { tire1.reload.kilometres }.from(0).to(50.0)
+        .and change { tire2.reload.kilometres }.from(0).to(50.0)
+        .and change { brake1.reload.kilometres }.from(0).to(50.0)
+        .and change { brake2.reload.kilometres }.from(0).to(50.0)
+        .and change { KilometreLog.count }.by(8)
       expect(result).to be true
     end
 
@@ -55,12 +55,12 @@ RSpec.describe Api::V1::RideRecordingService, type: :service do
       expect {
         result = Api::V1::RideRecordingService.record(bicycle, 50.0, "Morning Ride")
       }.to change { bicycle.reload.kilometres }.from(0).to(50.0)
-      .and change { chain.reload.kilometres }.from(0).to(50.0)
-      .and change { chainring.reload.kilometres }.from(0).to(50.0)
-      .and change { cassette.reload.kilometres }.from(0).to(50.0)
-      .and change { tire1.reload.kilometres }.from(0).to(50.0)
-      .and change { brake1.reload.kilometres }.from(0).to(50.0)
-      .and change { KilometreLog.count }.by(6)
+        .and change { chain.reload.kilometres }.from(0).to(50.0)
+        .and change { chainring.reload.kilometres }.from(0).to(50.0)
+        .and change { cassette.reload.kilometres }.from(0).to(50.0)
+        .and change { tire1.reload.kilometres }.from(0).to(50.0)
+        .and change { brake1.reload.kilometres }.from(0).to(50.0)
+        .and change { KilometreLog.count }.by(6)
       expect(result).to be true
     end
 

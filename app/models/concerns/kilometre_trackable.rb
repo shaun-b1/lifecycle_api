@@ -24,10 +24,10 @@ module KilometreTrackable
 
     if saved
       kilometre_logs.create(
-        event_type:     "maintenance",
+        event_type: "maintenance",
         previous_value: old_value,
-        new_value:      0,
-        notes:          notes || "Maintenance performed"
+        new_value: 0,
+        notes: notes || "Maintenance performed"
       )
     end
 
@@ -55,25 +55,37 @@ module KilometreTrackable
     return if old_value == new_value
 
     last_log = kilometre_logs.order(created_at: :desc).first
-    return if last_log && last_log.created_at > 1.second.ago && last_log.previous_value == old_value && last_log.new_value == new_value
+    return if duplicate_recent_log?(last_log, old_value, new_value)
 
-    event_type = if new_value == 0 && old_value && old_value > 0
+    event_type = determine_kilometre_event_type(old_value, new_value)
+    notes_text = pending_notes ||
+                 "Kilometres #{event_type}d from #{old_value || 0} to #{new_value || 0}"
+
+    kilometre_logs.create(
+      event_type: event_type,
+      previous_value: old_value || 0,
+      new_value: new_value || 0,
+      notes: notes_text
+    )
+
+    self.pending_notes = nil
+  end
+
+  def duplicate_recent_log?(last_log, old_value, new_value)
+    return false unless last_log
+
+    last_log.created_at > 1.second.ago &&
+      last_log.previous_value == old_value &&
+      last_log.new_value == new_value
+  end
+
+  def determine_kilometre_event_type(old_value, new_value)
+    if new_value == 0 && old_value && old_value > 0
       "reset"
     elsif new_value > (old_value || 0)
       "increase"
     else
       "decrease"
     end
-
-    notes_text = pending_notes || "Kilometres #{event_type}d from #{old_value || 0} to #{new_value || 0}"
-
-    kilometre_logs.create(
-      event_type:     event_type,
-      previous_value: old_value || 0,
-      new_value:      new_value || 0,
-      notes:          notes_text
-    )
-
-    self.pending_notes = nil
   end
 end

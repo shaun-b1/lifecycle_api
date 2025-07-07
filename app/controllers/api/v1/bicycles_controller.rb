@@ -64,7 +64,13 @@ class Api::V1::BicyclesController < ApplicationController
   end
 
   def resource_params
-    params.require(:bicycle).permit(:name, :brand, :model, :kilometres, :terrain, :weather, :particulate)
+    params.require(:bicycle).permit(:name,
+      :brand,
+      :model,
+      :kilometres,
+      :terrain,
+      :weather,
+      :particulate)
   end
 
   def find_resource

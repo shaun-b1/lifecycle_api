@@ -16,12 +16,14 @@ module Api
         def to_hash
           {
             success: false,
-            error:   {
-              code:        @error_code,
-              message:     @message,
-              details:     @details,
-              status:      Api::V1::HttpStatus.code_for(@status),
-              status_text: Api::V1::HttpStatus.reason_phrase(Api::V1::HttpStatus.code_for(@status)) } }
+            error: {
+              code: @error_code,
+              message: @message,
+              details: @details,
+              status: Api::V1::HttpStatus.code_for(@status),
+              status_text: Api::V1::HttpStatus.reason_phrase(Api::V1::HttpStatus.code_for(@status))
+            }
+          }
         end
       end
     end

@@ -18,11 +18,12 @@ class Bicycle < ApplicationRecord
 
   def base_wear_limits
     {
-      chain:     3500,
-      cassette:  10000,
+      chain: 3500,
+      cassette: 10000,
       chainring: 18000,
-      tire:      5500,
-      brakepad:  4000 }
+      tire: 5500,
+      brakepad: 4000
+    }
   end
 
   def wear_multipliers
@@ -78,18 +79,20 @@ class Bicycle < ApplicationRecord
     mults = wear_multipliers
 
     {
-      chain:     (base[:chain] / mults[:chain]).round,
-      cassette:  (base[:cassette] / mults[:cassette]).round,
+      chain: (base[:chain] / mults[:chain]).round,
+      cassette: (base[:cassette] / mults[:cassette]).round,
       chainring: (base[:chainring] / mults[:chainring]).round,
-      tire:      (base[:tire] / mults[:tire]).round,
-      brakepad:  (base[:brakepad] / mults[:brakepad]).round }
+      tire: (base[:tire] / mults[:tire]).round,
+      brakepad: (base[:brakepad] / mults[:brakepad]).round
+    }
   end
 
   def riding_environment
     {
-      terrain:     terrain_description,
-      weather:     weather_description,
-      particulate: particulate_description }
+      terrain: terrain_description,
+      weather: weather_description,
+      particulate: particulate_description
+    }
   end
 
   def maintenance_recommendations
@@ -115,31 +118,38 @@ class Bicycle < ApplicationRecord
     limits = adjusted_wear_limits
 
     {
-      bicycle:   {
-        kilometres:          kilometres,
+      bicycle: {
+        kilometres: kilometres,
         lifetime_kilometres: lifetime_kilometres,
-        last_maintenance:    last_maintenance_date,
-        riding_environment:  riding_environment },
-      chain:     chain ? {
-        kilometres:      chain.kilometres,
-        wear_limit:      limits[:chain],
-        wear_percentage: (chain.kilometres / limits[:chain].to_f * 100).round } : nil,
-      cassette:  cassette ? {
-        kilometres:      cassette.kilometres,
-        wear_limit:      limits[:cassette],
-        wear_percentage: (cassette.kilometres / limits[:cassette].to_f * 100).round } : nil,
+        last_maintenance: last_maintenance_date,
+        riding_environment: riding_environment
+      },
+      chain: chain ? {
+        kilometres: chain.kilometres,
+        wear_limit: limits[:chain],
+        wear_percentage: (chain.kilometres / limits[:chain].to_f * 100).round
+      } : nil,
+      cassette: cassette ? {
+        kilometres: cassette.kilometres,
+        wear_limit: limits[:cassette],
+        wear_percentage: (cassette.kilometres / limits[:cassette].to_f * 100).round
+      } : nil,
       chainring: chainring ? {
-        kilometres:      chainring.kilometres,
-        wear_limit:      limits[:chainring],
-        wear_percentage: (chainring.kilometres / limits[:chainring].to_f * 100).round } : nil,
-      tires:     tires.map { |t| {
-        kilometres:      t.kilometres,
-        wear_limit:      limits[:tire],
-        wear_percentage: (t.kilometres / limits[:tire].to_f * 100).round } },
+        kilometres: chainring.kilometres,
+        wear_limit: limits[:chainring],
+        wear_percentage: (chainring.kilometres / limits[:chainring].to_f * 100).round
+      } : nil,
+      tires: tires.map { |t| {
+        kilometres: t.kilometres,
+        wear_limit: limits[:tire],
+        wear_percentage: (t.kilometres / limits[:tire].to_f * 100).round
+      } },
       brakepads: brakepads.map { |b| {
-        kilometres:      b.kilometres,
-        wear_limit:      limits[:brakepad],
-        wear_percentage: (b.kilometres / limits[:brakepad].to_f * 100).round } } }
+        kilometres: b.kilometres,
+        wear_limit: limits[:brakepad],
+        wear_percentage: (b.kilometres / limits[:brakepad].to_f * 100).round
+      } }
+    }
   end
 
   private
