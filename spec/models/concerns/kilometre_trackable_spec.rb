@@ -61,56 +61,89 @@ RSpec.describe KilometreTrackable do
     end
 
     it "handles nil starting kilometres" do
-      # trackable with kilometres: nil
-      # result = add_kilometres(25)
+      trackable.update_column(:kilometres, nil)
+      result = nil
 
-      # expect result to be true
-      # expect trackable.kilometres to eq 25
-      # expect log.previous_value to eq 0
-      # expect log.new_value to eq 25
-      skip ("Waiting for the planets to align")
+      expect {
+        result = trackable.add_kilometres(25, "Nil ride")
+      }.to change { trackable.reload.kilometres }.from(nil).to(25)
+
+      latest_log = trackable.kilometre_logs.last
+      expect(latest_log).to have_attributes(
+        event_type: "increase",
+        previous_value: 0.0,
+        new_value: 25.0,
+        notes: "Nil ride"
+        )
+
+      expect(result).to be true
     end
 
     it "rejects negative amounts" do
-      # result = add_kilometres(-10)
+      initial_kilometres = trackable.kilometres
+      initial_log_count = trackable.kilometre_logs.count
 
-      # expect result to be false
-      # expect trackable.kilometres to eq 100 (unchanged)
-      # expect no kilometre_logs created
-      skip ("Waiting for the planets to align")
+      result = trackable.add_kilometres(-10, "Backwards ride")
+
+      expect(trackable.reload.kilometres).to eq(initial_kilometres)
+      expect(trackable.kilometre_logs.count).to eq(initial_log_count)
+      expect(result).to be false
     end
 
     it "rejects zero amounts" do
-      # result = add_kilometres(0)
+      initial_kilometres = trackable.kilometres
+      initial_log_count = trackable.kilometre_logs.count
 
-      # expect result to be false
-      # expect trackable.kilometres to eq 100 (unchanged)
-      skip ("Waiting for the planets to align")
+      result = trackable.add_kilometres(0, "Did you even ride?")
+
+      expect(trackable.reload.kilometres).to eq(initial_kilometres)
+      expect(trackable.kilometre_logs.count).to eq(initial_log_count)
+      expect(result).to be false
     end
 
     it "sets pending_notes for logging" do
-      # add_kilometres(50, "Custom notes")
+      expect(trackable.pending_notes).to be_nil
 
-      # expect trackable.pending_notes to be_nil (cleared after save)
-      # expect last log notes to include "Custom notes"
-      skip ("Waiting for the planets to align")
+      trackable.add_kilometres(25, "Custom notes")
+
+      expect(trackable.pending_notes).to be_nil
+
+      latest_log = trackable.kilometre_logs.last
+      expect(latest_log).to have_attributes(
+        event_type: "increase",
+        previous_value: 100.0,
+        new_value: 125.0,
+        notes: "Custom notes"
+      )
     end
 
     it "uses default notes when none provided" do
-      # add_kilometres(30)
+      expect(trackable.pending_notes).to be_nil
 
-      # expect last log notes to include "Kilometres increased from 100 to 130"
-      skip ("Waiting for the planets to align")
+      trackable.add_kilometres(30)
+
+      expect(trackable.pending_notes).to be_nil
+
+      latest_log = trackable.kilometre_logs.last
+      expect(latest_log).to have_attributes(
+        event_type: "increase",
+        previous_value: 100.0,
+        new_value: 130.0,
+        notes: "Kilometres increased from 100.0 to 130.0"
+      )
     end
 
     it "handles save failures gracefully" do
-      # stub trackable.save to return false
-      # result = add_kilometres(50)
+      allow(trackable).to receive(:save).and_return(false)
+      initial_kilometres = trackable.reload.kilometres
+      initial_log_count = trackable.kilometre_logs.count
 
-      # expect result to be false
-      # expect trackable.kilometres to eq 150 (in memory)
-      # expect no kilometre_logs created
-      skip ("Waiting for the planets to align")
+      result = trackable.add_kilometres(50)
+
+      expect(result).to be false
+      expect(trackable.kilometres).to eq(150)
+      expect(trackable.reload.kilometres).to eq(initial_kilometres)
+      expect(trackable.kilometre_logs.count).to eq(initial_log_count)
     end
   end
 
