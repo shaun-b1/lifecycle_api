@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_05_16_063222) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_10_061210) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -34,7 +34,12 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_16_063222) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "bicycle_id", null: false
+    t.string "model", default: "Unknown", null: false
+    t.string "status", default: "active", null: false
+    t.datetime "replaced_at"
+    t.index ["bicycle_id", "status"], name: "index_brakepads_on_bicycle_id_and_status"
     t.index ["bicycle_id"], name: "index_brakepads_on_bicycle_id"
+    t.index ["status"], name: "index_brakepads_on_status"
   end
 
   create_table "cassettes", force: :cascade do |t|
@@ -43,7 +48,12 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_16_063222) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "bicycle_id", null: false
+    t.string "model", default: "Unknown", null: false
+    t.string "status", default: "active", null: false
+    t.datetime "replaced_at"
+    t.index ["bicycle_id", "status"], name: "index_cassettes_on_bicycle_id_and_status"
     t.index ["bicycle_id"], name: "index_cassettes_on_bicycle_id"
+    t.index ["status"], name: "index_cassettes_on_status"
   end
 
   create_table "chainrings", force: :cascade do |t|
@@ -52,7 +62,12 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_16_063222) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "bicycle_id", null: false
+    t.string "model", default: "Unknown", null: false
+    t.string "status", default: "active", null: false
+    t.datetime "replaced_at"
+    t.index ["bicycle_id", "status"], name: "index_chainrings_on_bicycle_id_and_status"
     t.index ["bicycle_id"], name: "index_chainrings_on_bicycle_id"
+    t.index ["status"], name: "index_chainrings_on_status"
   end
 
   create_table "chains", force: :cascade do |t|
@@ -61,7 +76,12 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_16_063222) do
     t.integer "bicycle_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "model", default: "Unknown", null: false
+    t.string "status", default: "active", null: false
+    t.datetime "replaced_at"
+    t.index ["bicycle_id", "status"], name: "index_chains_on_bicycle_id_and_status"
     t.index ["bicycle_id"], name: "index_chains_on_bicycle_id"
+    t.index ["status"], name: "index_chains_on_status"
   end
 
   create_table "kilometre_logs", force: :cascade do |t|
@@ -83,7 +103,12 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_16_063222) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "bicycle_id", null: false
+    t.string "model", default: "Unknown", null: false
+    t.string "status", default: "active", null: false
+    t.datetime "replaced_at"
+    t.index ["bicycle_id", "status"], name: "index_tires_on_bicycle_id_and_status"
     t.index ["bicycle_id"], name: "index_tires_on_bicycle_id"
+    t.index ["status"], name: "index_tires_on_status"
   end
 
   create_table "users", force: :cascade do |t|

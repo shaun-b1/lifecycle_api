@@ -29,15 +29,10 @@ class Api::V1::BicyclesController < ApplicationController
     @bicycle = find_resource
     authorize @bicycle
 
-    notes = params[:notes]
-    components = Array(params[:components])
-
     begin
-      if params[:full_service].present? && params[:full_service] == "true"
-        MaintenanceService.record_full_service(@bicycle, notes)
-      else
-        MaintenanceService.record_bicycle_maintenance(@bicycle, components, notes)
-      end
+      maintenance_options = build_maintenance_options
+
+      MaintenanceService.record_maintenance(@bicycle, maintenance_options)
 
       response = Api::V1::ResponseService.success(
         ActiveModelSerializers::SerializableResource.new(
@@ -75,5 +70,58 @@ class Api::V1::BicyclesController < ApplicationController
     resource = super
     resource.user = current_user
     resource
+  end
+
+  def build_maintenance_options
+    options = {}
+
+    options[:notes] = params[:notes] if params[:notes].present?
+
+    if params[:full_service] == true || params[:full_service] == "true"
+      options[:full_service] = true
+      options[:default_brand] = params[:default_brand]
+      options[:default_model] = params[:default_model]
+      options[:exceptions] = format_exceptions(params[:exceptions]) if params[:exceptions]
+    end
+
+    if params[:replacements].present?
+      options[:replacements] = format_replacements(params[:replacements])
+    end
+
+    options
+  end
+
+  def format_exceptions(exceptions_params)
+    formatted = {}
+
+    exceptions_params.each do |component_type, specs|
+      case component_type.to_s
+      when "tires", "brakepads"
+        formatted[component_type.to_sym] = Array(specs).map do |spec|
+          { brand: spec[:brand], model: spec[:model] }
+        end
+      else
+        formatted[component_type.to_sym] = { brand: spec[:brand], model: spec[:model] }
+      end
+    end
+
+    formatted
+  end
+
+  def format_replacements(replacement_params)
+    formatted = {}
+
+    replacement_params.each do |component_type, specs|
+      case component_type.to_s
+      when "tires", "brakepads"
+        formatted[component_type.to_sym] = Array(specs).map do |spec|
+          { brand: spec[:brand], model: spec[:model] }
+        end
+      else
+        formatted[component_type.to_sym] = { brand: spec[:brand], model: spec[:model] }
+      end
+    end
+
+    formatted
   end
 end

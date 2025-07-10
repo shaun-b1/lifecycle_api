@@ -9,6 +9,9 @@ module BicycleComponent
     belongs_to :bicycle
     validates :bicycle, presence: true
     validate :validate_component_limit
+
+    scope :active, -> { where(status: "active") }
+    scope :replaced, -> { where(status: "replaced") }
   end
 
   class_methods do
@@ -23,8 +26,16 @@ module BicycleComponent
 
   def replace_component(new_brand, reset_kilometres = true)
     self.brand = new_brand
+    self.model = new_model
     self.kilometres = 0 if reset_kilometres
     save
+  end
+
+  def retire_component(reason = nil)
+    update(
+      status: "replaced",
+      replaced_at: Time.current,
+    )
   end
 
   private

@@ -1,67 +1,132 @@
 class MaintenanceService
-  def self.record_component_maintenance(component, notes = nil)
-    unless component.present?
-      raise Api::V1::Errors::ResourceNotFoundError.new("Component")
-    end
+  def self.record_maintenance(bicycle, options = {})
+   unless bicycle.present?
+     raise Api::V1::Errors::ResourceNotFoundError.new("Bicycle")
+   end
 
-    success = component.record_maintenance(notes)
+   notes = options[:notes]
+   full_service = options[:full_service]
+   default_brand = options[:default_brand]
+   default_model = options[:default_model]
+   exceptions = options[:exceptions] || {}
 
-    unless success
-      raise Api::V1::Errors::ValidationError.new(
-        "Failed to record component maintenance",
-        component.errors.full_messages
-      )
-    end
+   ActiveRecord::Base.transaction do
+     bicycle_updated = bicycle.record_maintenance(notes || "Maintenance performed")
 
-    true
-  end
+     unless bicycle_updated
+       raise Api::V1::Errors::ValidationError.new(
+        "Failed to record bicycle maintenance",
+        bicycle.errors.full_messages
+       )
+     end
 
-  def self.record_bicycle_maintenance(bicycle, components = [], notes = nil)
-    unless bicycle.present?
-      raise Api::V1::Errors::ResourceNotFoundError.new("Bicycle")
-    end
+     if full_service
+       validate_full_service_params(default_brand, default_model)
+       replace_all_components(bicycle, default_brand, default_model, exceptions)
+     elsif options[:replacements]
+      replace_specific_components(bicycle, options[:replacements])
+     end
+   end
 
-    ActiveRecord::Base.transaction do
-      bicycle_updated = bicycle.record_maintenance("Full bicycle maintenance: #{notes}")
-
-      unless bicycle_updated
-        raise Api::V1::Errors::ValidationError.new(
-          "Failed to record bicycle maintenance",
-          bicycle.errors.full_messages
-        )
-      end
-
-      components = components.compact.uniq
-      components.each do |component|
-        next unless bicycle.send(component)
-
-        component_obj = bicycle.send(component)
-        if component_obj.is_a?(ActiveRecord::Associations::CollectionProxy)
-          component_obj.each do |individual_component|
-            individual_component.record_maintenance("Maintenance as part of a bicycle service")
-          end
-        else
-          component_obj.record_maintenance("Maintenance as part of a bicycle service")
-        end
-      end
-    end
-
-    true
+   true
   rescue Api::V1::Errors::ApiError => e
     raise e
   rescue => e
-    Rails.logger.error("Failed to record bicycle maintenance: #{e.message}")
+    Rails.logger.error("Failed to record maintenance: #{e.message}")
     Rails.logger.error(e.backtrace.join("\n"))
 
     raise Api::V1::Errors::ApiError.new(
-      "An unexpected error occurred during maintenance recording",
-      "MAINTENANCE_RECORDING_ERROR",
+      "An unexpected error occurred during maintenance",
+      "MAINTENANCE_ERROR",
       :internal_server_error
     )
   end
 
-  def self.record_full_service(bicycle, notes = nil)
-    all_components = [ :chain, :cassette, :chainring, :tires, :brakepads ]
-    record_bicycle_maintenance(bicycle, all_components, notes || "Full service")
+  private
+
+  def self.validate_full_service_params(default_brand, default_model)
+    if default_brand.blank?
+      raise Api::V1::Errors::ValidationError.new(
+        "Default brand is required for full service",
+        [ "default_brand can't be blank" ]
+      )
+    end
+
+    if default_model.blank?
+      raise Api::V1::Errors::ValidationError.new(
+        "Default model is required for full service",
+        [ "default_model can't be blank" ]
+      )
+    end
+  end
+
+  def self.replace_all_components(bicycle, default_brand, default_model, exceptions)
+    component_types = %w[chain cassette chainring tires brakepads]
+
+    component_types.each do |component_type|
+      if exceptions[component_type.to_sym]
+        replace_component_type(bicycle, component_type, exceptions[component_type.to_sym])
+      else
+        specs = { brand: default_brand, model: default_model }
+        replace_component_type(bicycle, component_type, specs)
+      end
+    end
+  end
+
+  def self.replace_specific_components(bicycle, replacements)
+    replacements.each do |component_type, specs|
+      replace_component_type(bicycle, component_type.to_sym, specs)
+    end
+  end
+
+  def self.replace_component_type(bicycle, component_type, specs)
+    case component_type
+    when "chain", "cassette", "chainring"
+      replace_single_component(bicycle, component_type, specs)
+    when "tires", "brakepads"
+      replace_multiple_components(bicycle, component_type, specs)
+    end
+  end
+
+  def self.replace_single_component(bicycle, component_type, specs)
+    old_component = bicycle.send(component_type)
+    if old_component
+      unless old_component.update(status: "replaced", replaced_at: Time.current)
+        raise Api::V1::Errors::ValidationError.new(
+          "Failed to retire old #{component_type}",
+          old_component.errors.full_messages
+        )
+      end
+    end
+
+    new_component = bicycle.send("create_#{component_type}", specs.merge(kilometres: 0, status: "active"))
+    unless new_component.persisted?
+      raise Api::V1::Errors::ValidationError.new(
+        "Failed to create new #{component_type}",
+        new_component.errors.full_messages
+      )
+    end
+  end
+
+  def self.replace_multiple_components(bicycle, component_type, specs_array)
+    old_components = bicycle.send(component_type)
+    old_components.each do |component|
+      unless old_component.update(status: "replaced", replaced_at: Time.current)
+        raise Api::V1::Errors::ValidationError.new(
+          "Failed to retire old #{component_type.singularize}",
+          old_component.errors.full_messages
+        )
+      end
+    end
+
+    Array(specs_array).each do |specs|
+      new_component = bicycle.send(component_type).create(specs.merge(kilometres: 0, status: "active"))
+      unless new_component.persisted?
+        raise Api::V1::Errors::ValidationError.new(
+          "Failed to create new #{component_type}",
+          new_component.errors.full_messages
+        )
+      end
+    end
   end
 end

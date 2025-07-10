@@ -3,11 +3,18 @@ class Bicycle < ApplicationRecord
   include KilometreTrackable
 
   belongs_to :user
-  has_one :chain, dependent: :destroy
-  has_one :cassette, dependent: :destroy
-  has_one :chainring, dependent: :destroy
-  has_many :tires, dependent: :destroy
-  has_many :brakepads, dependent: :destroy
+
+  has_one :chain, -> { where(status: "active") }, dependent: :destroy
+  has_one :cassette, -> { where(status: "active") }, dependent: :destroy
+  has_one :chainring, -> { where(status: "active") }, dependent: :destroy
+  has_many :tires, -> { where(status: "active") }, dependent: :destroy
+  has_many :brakepads, -> { where(status: "active") }, dependent: :destroy
+
+  has_many :all_chains, class_name: "Chain"
+  has_many :all_cassettes, class_name: "Cassette"
+  has_many :all_chainrings, class_name: "Chainring"
+  has_many :all_tires, class_name: "Tire"
+  has_many :all_brakepads, class_name: "Brakepad"
 
   validates :name, presence: true
   validates :brand, presence: true
