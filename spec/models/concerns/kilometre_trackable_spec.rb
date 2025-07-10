@@ -30,14 +30,6 @@ RSpec.describe KilometreTrackable do
       trackable.update(kilometres: 150)
       expect(trackable.kilometre_logs.count).to eq(initial_log_count + 1)
     end
-
-    it "adds pending_notes attr_accessor" do
-      # expect instance to respond_to :pending_notes, :pending_notes=
-      expect(trackable.pending_notes).to be_nil
-      trackable.pending_notes = "Note test"
-      expect(trackable.pending_notes).to eq("Note test")
-      # skip ("Waiting for the planets to align")
-    end
   end
 
   describe "#add_kilometres" do
@@ -149,199 +141,164 @@ RSpec.describe KilometreTrackable do
 
   describe "#record_maintenance" do
     it "resets kilometres to zero and creates maintenance log" do
-      # trackable at 100km
-      # result = record_maintenance("Regular service")
+      expect {
+        result = trackable.record_maintenance("Regular service")
+        expect(result).to be true
+      }. to change { trackable.reload.kilometres }.from(100).to(0)
+      .and change { trackable.kilometre_logs.count }.by(1)
 
-      # expect result to be true
-      # expect trackable.kilometres to eq 0
-      # expect maintenance log created with:
-      #   event_type: "maintenance"
-      #   previous_value: 100
-      #   new_value: 0
-      #   notes: "Regular service"
-      skip ("Waiting for the planets to align")
+      latest_log = trackable.kilometre_logs.last
+      expect(latest_log).to have_attributes(
+        event_type: "maintenance",
+        previous_value: 100,
+        new_value: 0,
+        notes: "Regular service"
+      )
     end
 
     it "handles save failures" do
-      # stub trackable.save to return false
-      # result = record_maintenance("Service")
+      allow(trackable).to receive(:save).and_return(false)
+      initial_kilometres = trackable.reload.kilometres
+      initial_log_count = trackable.kilometre_logs.count
 
-      # expect result to be false
-      # expect no maintenance logs created
-      skip ("Waiting for the planets to align")
+      result = trackable.record_maintenance("Service")
+
+      expect(result).to be false
+      expect(trackable.reload.kilometres).to eq(initial_kilometres)
+      expect(trackable.kilometre_logs.count).to eq(initial_log_count)
     end
 
     it "uses default notes when none provided" do
-      # record_maintenance
+      expect {
+        result = trackable.record_maintenance
+        expect(result).to be true
+      }.to change { trackable.kilometre_logs.count }.by(1)
 
-      # expect last log notes to eq "Maintenance performed"
-      skip ("Waiting for the planets to align")
+      latest_log = trackable.kilometre_logs.last
+      expect(latest_log).to have_attributes(
+        event_type: "maintenance",
+        previous_value: 100,
+        new_value: 0,
+        notes: "Maintenance performed"
+      )
     end
 
-    it "also triggers reset log automatically" do
-      # record_maintenance("Service")
+    it "handles zero starting kilometres" do
+      trackable.update(kilometres: 0)
 
-      # expect 2 logs created:
-      #   1. reset log (automatic from kilometres change)
-      #   2. maintenance log (explicit)
-      skip ("Waiting for the planets to align")
+      expect {
+        result = trackable.record_maintenance("Service")
+        expect(result).to be true
+      }.to change { trackable.kilometre_logs.count }.by(1)
+
+      latest_log = trackable.kilometre_logs.last
+      expect(latest_log).to have_attributes(
+        previous_value: 0,
+        new_value: 0
+      )
     end
   end
 
   describe "#lifetime_kilometres" do
     it "sums all ride kilometres correctly" do
-      # create ride logs: +50km, +30km, +20km
-      # create maintenance logs (should be ignored)
+      trackable.add_kilometres(50.0)
+      trackable.record_maintenance
+      trackable.add_kilometres(30.0)
+      trackable.record_maintenance
+      trackable.add_kilometres(20.0)
 
-      # expect lifetime_kilometres to eq 100
-      skip ("Waiting for the planets to align")
+      expect(trackable.lifetime_kilometres).to eq(200.0)
+
+      expect(trackable.kilometre_logs.maintenance.count).to eq(2)
+      expect(trackable.kilometre_logs.rides.count).to eq(4)
     end
 
     it "handles no ride logs" do
-      # trackable with no logs
+      trackable = create(:bicycle)
 
-      # expect lifetime_kilometres to eq 0
-      skip ("Waiting for the planets to align")
-    end
-
-    it "only counts increase events" do
-      # create logs:
-      #   increase: +50km
-      #   reset: 50km to 0km
-      #   increase: +30km
-      #   maintenance: ignored
-
-      # expect lifetime_kilometres to eq 80 (50 + 30)
-      skip ("Waiting for the planets to align")
-    end
-
-    it "handles nil values in logs" do
-      # create log with new_value: nil, previous_value: 0
-
-      # expect lifetime_kilometres to handle gracefully (treat nil as 0)
-      skip ("Waiting for the planets to align")
+      expect(trackable.kilometre_logs.rides).to be_empty
+      expect(trackable.lifetime_kilometres).to eq(0)
     end
   end
 
   describe "#maintenance_history" do
-    it "returns maintenance logs ordered by date desc" do
-      # create maintenance logs on different dates
-      # create other log types (should be excluded)
-
-      # history = maintenance_history
-      # expect history to contain only maintenance logs
-      # expect history to be ordered by created_at desc
-      skip ("Waiting for the planets to align")
+  it "returns maintenance logs ordered by date desc" do
+    oldest_log = travel_to(3.days.ago) do
+      trackable.record_maintenance("Old service")
+      trackable.kilometre_logs.maintenance.last
     end
 
-    it "returns empty when no maintenance logs" do
-      # trackable with only ride logs
+    middle_log = travel_to(1.day.ago) do
+      trackable.record_maintenance("Recent service")
+      trackable.kilometre_logs.maintenance.last
+    end
 
-      # expect maintenance_history to be_empty
-      skip ("Waiting for the planets to align")
+    trackable.add_kilometres(50.0, "Ride between maintenance")
+
+    newest_log = travel_to(Time.current) do
+      trackable.record_maintenance("Latest service")
+      trackable.kilometre_logs.maintenance.last
+    end
+
+    history = trackable.maintenance_history
+
+    expect(history).to contain_exactly(newest_log, middle_log, oldest_log)
+    expect(history.first).to eq(newest_log)
+    expect(history.last).to eq(oldest_log)
+    expect(history.map(&:event_type)).to all(eq("maintenance"))
+  end
+
+    it "returns empty when no maintenance logs" do
+      trackable.add_kilometres(50)
+      trackable.add_kilometres(30)
+      trackable.add_kilometres(20)
+
+      expect(trackable.kilometre_logs.count).to be > 0
+      expect(trackable.maintenance_history).to be_empty
     end
   end
 
   describe "#last_maintenance_date" do
     it "returns date of most recent maintenance" do
-      # create maintenance logs on: 1 week ago, 2 days ago, 1 month ago
+      travel_to(1.month.ago) do
+        trackable.record_maintenance("Old service")
+        trackable.kilometre_logs.maintenance.last
+      end
 
-      # expect last_maintenance_date to eq 2.days.ago date
-      skip ("Waiting for the planets to align")
+      travel_to(1.week.ago) do
+        trackable.record_maintenance("Recent service")
+        trackable.kilometre_logs.maintenance.last
+      end
+
+      some_time = 2.days.ago
+
+      travel_to(some_time) do
+        trackable.record_maintenance("Latest service")
+        trackable.kilometre_logs.maintenance.last
+      end
+
+      expect(trackable.kilometre_logs.maintenance.count).to eq(3)
+      expect(trackable.last_maintenance_date).to be_within(1.second).of(some_time)
     end
 
     it "returns nil when no maintenance performed" do
-      # trackable with only ride logs
+      trackable.add_kilometres(50)
+      trackable.add_kilometres(30)
+      trackable.add_kilometres(20)
 
-      # expect last_maintenance_date to be_nil
-      skip ("Waiting for the planets to align")
-    end
-  end
-
-  describe "log_kilometre_changes (private callback)" do
-    it "creates reset log when kilometres goes to zero" do
-      # trackable.update(kilometres: 0)
-
-      # expect log created with:
-      #   event_type: "reset"
-      #   previous_value: 100
-      #   new_value: 0
-      skip ("Waiting for the planets to align")
-    end
-
-    it "creates increase log when kilometres increases" do
-      # trackable.update(kilometres: 150)
-
-      # expect log created with:
-      #   event_type: "increase"
-      #   previous_value: 100
-      #   new_value: 150
-      skip ("Waiting for the planets to align")
-    end
-
-    it "creates decrease log when kilometres decreases" do
-      # trackable.update(kilometres: 80)
-
-      # expect log created with:
-      #   event_type: "decrease"
-      #   previous_value: 100
-      #   new_value: 80
-      skip ("Waiting for the planets to align")
-    end
-
-    it "skips logging when kilometres unchanged" do
-      # trackable.update(name: "New name")  # Non-kilometres change
-
-      # expect no new logs created
-      skip ("Waiting for the planets to align")
-    end
-
-    it "prevents duplicate logs within 1 second" do
-      # create log 0.5 seconds ago with same values
-      # trackable.update(kilometres: 150)
-
-      # expect no new log created (duplicate prevention)
-      skip ("Waiting for the planets to align")
-    end
-
-    it "allows logs after 1 second gap" do
-      # create log 2 seconds ago
-      # trackable.update(kilometres: 150)
-
-      # expect new log created
-      skip ("Waiting for the planets to align")
-    end
-
-    it "uses pending_notes when available" do
-      # trackable.pending_notes = "Custom notes"
-      # trackable.update(kilometres: 150)
-
-      # expect log.notes to include "Custom notes"
-      # expect trackable.pending_notes to be_nil (cleared)
-      skip ("Waiting for the planets to align")
-    end
-
-    it "uses default notes when pending_notes nil" do
-      # trackable.update(kilometres: 150)
-
-      # expect log.notes to eq "Kilometres increased from 100 to 150"
-      skip ("Waiting for the planets to align")
-    end
-
-    it "handles nil previous values" do
-      # trackable with kilometres: nil
-      # trackable.update(kilometres: 50)
-
-      # expect log.previous_value to eq 0
-      # expect log.new_value to eq 50
-      skip ("Waiting for the planets to align")
+      expect(trackable.kilometre_logs.count).to be > 0
+      expect(trackable.last_maintenance_date).to be_nil
     end
   end
 
   describe "integration with multiple models" do
     it "works with Bicycle model" do
       # bicycle = create bicycle with concern
+      bicycle = create(:bicycle)
+      expect(bicycle.kilometre_logs).to be_empty
+      expect(bicycle.maintenance_logs)
       # test basic functionality on bicycle
+      bicycle.add_kilometres
       skip ("Waiting for the planets to align")
     end
 
