@@ -111,16 +111,17 @@ class MaintenanceService
   def self.replace_multiple_components(bicycle, component_type, specs_array)
     old_components = bicycle.send(component_type)
     old_components.each do |component|
-      unless old_component.update(status: "replaced", replaced_at: Time.current)
+      unless component.update(status: "replaced", replaced_at: Time.current)
         raise Api::V1::Errors::ValidationError.new(
           "Failed to retire old #{component_type.singularize}",
-          old_component.errors.full_messages
+          omponent.errors.full_messages
         )
       end
     end
 
     Array(specs_array).each do |specs|
-      new_component = bicycle.send(component_type).create(specs.merge(kilometres: 0, status: "active"))
+      singular_type = component_type.singularize
+      new_component = bicycle.send("create_#{singular_type}", specs.merge(kilometres: 0, status: "active"))
       unless new_component.persisted?
         raise Api::V1::Errors::ValidationError.new(
           "Failed to create new #{component_type}",

@@ -23,6 +23,26 @@ class Bicycle < ApplicationRecord
   validates :weather, inclusion: { in: %w[dry mixed wet], allow_nil: true }
   validates :particulate, inclusion: { in: %w[low medium high], allow_nil: true }
 
+  def create_chain(attributes)
+    all_chains.create(attributes)
+  end
+
+  def create_cassette(attributes)
+    all_cassettes.create(attributes)
+  end
+
+  def create_chainring(attributes)
+    all_chainrings.create(attributes)
+  end
+
+  def create_tire(attributes)
+    all_tires.create(attributes)
+  end
+
+  def create_brakepad(attributes)
+    all_brakepads.create(attributes)
+  end
+
   def base_wear_limits
     {
     chain: 3500,

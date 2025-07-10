@@ -4,7 +4,7 @@ module BicycleComponent
   included do
     include KilometreValidatable
     include KilometreTrackable
-    inlcude ComponentValidatable
+    include ComponentValidatable
 
     belongs_to :bicycle
     validates :bicycle, presence: true
@@ -24,7 +24,7 @@ module BicycleComponent
     end
   end
 
-  def replace_component(new_brand, reset_kilometres = true)
+  def replace_component(new_brand, new_model, reset_kilometres = true)
     self.brand = new_brand
     self.model = new_model
     self.kilometres = 0 if reset_kilometres
@@ -43,7 +43,7 @@ module BicycleComponent
   def validate_component_limit
     return unless bicycle
 
-    existing = self.class.where(bicycle: bicycle)
+    existing = self.class.where(bicycle: bicycle, status: "active")
     existing = existing.where.not(id: id) if persisted?
 
     if existing.count >= self.class.max_components

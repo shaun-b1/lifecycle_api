@@ -101,7 +101,7 @@ class Api::V1::BicyclesController < ApplicationController
           { brand: spec[:brand], model: spec[:model] }
         end
       else
-        formatted[component_type.to_sym] = { brand: spec[:brand], model: spec[:model] }
+        formatted[component_type.to_sym] = { brand: specs[:brand], model: specs[:model] }
       end
     end
 
@@ -118,7 +118,7 @@ class Api::V1::BicyclesController < ApplicationController
           { brand: spec[:brand], model: spec[:model] }
         end
       else
-        formatted[component_type.to_sym] = { brand: spec[:brand], model: spec[:model] }
+        formatted[component_type.to_sym] = { brand: specs[:brand], model: specs[:model] }
       end
     end
 

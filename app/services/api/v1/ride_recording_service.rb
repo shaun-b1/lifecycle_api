@@ -21,7 +21,15 @@ class RideRecordingService
         )
       end
 
-      [ bicycle.chain, bicycle.chainring, bicycle.cassette, *bicycle.tires, *bicycle.brakepads ].compact.each do |component|
+      active_components = [
+        bicycle.chain,
+        bicycle.chainring,
+        bicycle.cassette,
+        *bicycle.tires,
+        *bicycle.brakepads
+      ].compact
+
+      active_components.each do |component|
         component_updated = component.add_kilometres(distance, "Component distance updated from bicycle ride")
 
         unless component_updated
