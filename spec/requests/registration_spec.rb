@@ -18,15 +18,15 @@ RSpec.describe "Registration", type: :request do
       it "creates a new User" do
        expect {
           post "/api/v1/register",
-               params: valid_attributes,
-               as: :json
+            params: valid_attributes,
+            as: :json
         }.to change(User, :count).by(1)
       end
 
       it "returns a created status" do
         post "/api/v1/register",
-             params: valid_attributes,
-             as: :json
+          params: valid_attributes,
+          as: :json
 
         expect(response).to have_http_status(:created)
         expect(JSON.parse(response.body)["message"]).to eq("Signed up successfully.")
@@ -34,8 +34,8 @@ RSpec.describe "Registration", type: :request do
 
       it "returns the created user data" do
         post "/api/v1/register",
-             params: valid_attributes,
-             as: :json
+          params: valid_attributes,
+          as: :json
 
         json_response = JSON.parse(response.body)
         expect(json_response["data"]["user"]["email"]).to eq("test@example.com")
@@ -50,8 +50,8 @@ RSpec.describe "Registration", type: :request do
 
         expect {
           post "/api/v1/register",
-               params: invalid_attributes,
-               as: :json
+            params: invalid_attributes,
+            as: :json
         }.not_to change(User, :count)
 
         expect(json_response[:error]).to eq({
@@ -69,8 +69,8 @@ RSpec.describe "Registration", type: :request do
 
         expect {
           post "/api/v1/register",
-               params: invalid_attributes,
-               as: :json
+            params: invalid_attributes,
+            as: :json
         }.not_to change(User, :count)
 
         expect(json_response[:error]).to eq({
@@ -88,8 +88,8 @@ RSpec.describe "Registration", type: :request do
 
         expect {
           post "/api/v1/register",
-               params: invalid_attributes,
-               as: :json
+            params: invalid_attributes,
+            as: :json
         }.not_to change(User, :count)
 
         expect(json_response[:error]).to eq({
@@ -108,8 +108,8 @@ RSpec.describe "Registration", type: :request do
 
         expect {
           post "/api/v1/register",
-               params: invalid_attributes,
-               as: :json
+            params: invalid_attributes,
+            as: :json
         }.not_to change(User, :count)
 
         expect(json_response[:error]).to eq({
@@ -127,8 +127,8 @@ RSpec.describe "Registration", type: :request do
 
         expect {
           post "/api/v1/register",
-               params: invalid_attributes,
-               as: :json
+            params: invalid_attributes,
+            as: :json
         }.not_to change(User, :count)
 
         expect(json_response[:error]).to eq({
@@ -145,8 +145,8 @@ RSpec.describe "Registration", type: :request do
 
         expect {
           post "/api/v1/register",
-               params: valid_attributes,
-               as: :json
+            params: valid_attributes,
+            as: :json
         }.not_to change(User, :count)
 
         expect(json_response[:error]).to eq({

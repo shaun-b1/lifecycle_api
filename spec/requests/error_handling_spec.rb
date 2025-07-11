@@ -36,7 +36,7 @@ RSpec.describe "Error Handling", type: :request do
 
     it "returns 401 when token is invalid" do
       get "/api/v1/bicycles/#{bicycle.id}",
-          headers: { "Authorization" => "Bearer invalid_token" }
+        headers: { "Authorization" => "Bearer invalid_token" }
 
           expect(response).to have_http_status(:unauthorized)
           expect(json_response[:error]).to eq({
@@ -51,7 +51,7 @@ RSpec.describe "Error Handling", type: :request do
     it "returns 403 when accessing unauthorized resource" do
       other_bicycle = create(:bicycle, user: other_user)
       get "/api/v1/bicycles/#{other_bicycle.id}",
-          headers: jwt_auth_headers(user)
+        headers: jwt_auth_headers(user)
 
       expect(response).to have_http_status(:forbidden)
       expect(json_response[:error]).to eq({
@@ -82,8 +82,8 @@ RSpec.describe "Error Handling", type: :request do
 
     it "returns 422 when record is invalid" do
       post "/api/v1/bicycles",
-      headers: jwt_auth_headers(user),
-      params: { bicycle: { name: "", brand: "", model: "" } }
+        headers: jwt_auth_headers(user),
+        params: { bicycle: { name: "", brand: "", model: "" } }
 
       expect(response).to have_http_status(:unprocessable_entity)
       expect(json_response[:error]).to eq({

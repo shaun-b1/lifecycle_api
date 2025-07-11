@@ -14,7 +14,7 @@ RSpec.describe 'Components API', type: :request do
 
       it 'returns the component with type information' do
         get "/api/v1/bicycles/#{bicycle.id}/#{component_type}/#{component.id}",
-            headers: auth_headers
+          headers: auth_headers
 
         expect(response).to have_http_status(:success)
 

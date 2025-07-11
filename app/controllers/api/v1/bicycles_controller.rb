@@ -9,7 +9,7 @@ class Api::V1::BicyclesController < ApplicationController
     notes = params[:notes]
 
     begin
-      RideRecordingService.record(@bicycle, distance, notes)
+      Api::V1::RideRecordingService.record(@bicycle, distance, notes)
 
       response = Api::V1::ResponseService.success(
         ActiveModelSerializers::SerializableResource.new(
@@ -31,8 +31,7 @@ class Api::V1::BicyclesController < ApplicationController
 
     begin
       maintenance_options = build_maintenance_options
-
-      MaintenanceService.record_maintenance(@bicycle, maintenance_options)
+      Api::V1::MaintenanceService.record_maintenance(@bicycle, maintenance_options)
 
       response = Api::V1::ResponseService.success(
         ActiveModelSerializers::SerializableResource.new(
@@ -59,7 +58,13 @@ class Api::V1::BicyclesController < ApplicationController
   end
 
   def resource_params
-    params.require(:bicycle).permit(:name, :brand, :model, :kilometres, :terrain, :weather, :particulate)
+    params.require(:bicycle).permit(:name,
+      :brand,
+      :model,
+      :kilometres,
+      :terrain,
+      :weather,
+      :particulate)
   end
 
   def find_resource

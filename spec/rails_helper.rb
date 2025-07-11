@@ -78,5 +78,8 @@ RSpec.configure do |config|
   config.include AuthHelpers, type: :request
   config.include AuthHelpers, type: :controller
   config.include RequestSpecHelper, type: :request
+
+  # TIME TRAVEL!
+  config.include ActiveSupport::Testing::TimeHelpers
 end
 Dir[Rails.root.join('spec', 'support', '**', '*.rb')].sort.each { |f| require f }

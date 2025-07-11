@@ -25,7 +25,8 @@ module Api::V1::CrudOperations
     authorize @resource
 
     response = Api::V1::ResponseService.success(
-      ActiveModelSerializers::SerializableResource.new(@resource, serializer: resource_serializer).as_json,
+      ActiveModelSerializers::SerializableResource.new(@resource,
+        serializer: resource_serializer).as_json,
       "#{resource_class.name} retrieved successfully"
     )
 
@@ -38,7 +39,8 @@ module Api::V1::CrudOperations
 
     if @resource.save
       response_data = Api::V1::ResponseService.created(
-        ActiveModelSerializers::SerializableResource.new(@resource, serializer: resource_serializer).as_json,
+        ActiveModelSerializers::SerializableResource.new(@resource,
+          serializer: resource_serializer).as_json,
         "#{resource_class.name} created successfully"
       )
       render response_data
@@ -55,8 +57,9 @@ module Api::V1::CrudOperations
 
     if @resource.update(resource_params)
      response_data = Api::V1::ResponseService.updated(
-        ActiveModelSerializers::SerializableResource.new(@resource, serializer: resource_serializer).as_json,
-        "#{resource_class.name} updated successfully"
+       ActiveModelSerializers::SerializableResource.new(@resource,
+         serializer: resource_serializer).as_json,
+       "#{resource_class.name} updated successfully"
       )
       render response_data
     else

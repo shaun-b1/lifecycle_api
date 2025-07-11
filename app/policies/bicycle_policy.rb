@@ -19,6 +19,14 @@ class BicyclePolicy < ApplicationPolicy
     user_owns_bicycle?
   end
 
+  def record_ride?
+    user_owns_bicycle?
+  end
+
+  def record_maintenance?
+    user_owns_bicycle?
+  end
+
   class Scope
     def initialize(user, scope)
       @user = user

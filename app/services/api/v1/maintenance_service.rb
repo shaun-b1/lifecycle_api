@@ -1,34 +1,34 @@
-class MaintenanceService
+class Api::V1::MaintenanceService
   def self.record_maintenance(bicycle, options = {})
-   unless bicycle.present?
-     raise Api::V1::Errors::ResourceNotFoundError.new("Bicycle")
-   end
+    unless bicycle.present?
+      raise Api::V1::Errors::ResourceNotFoundError.new("Bicycle")
+    end
 
-   notes = options[:notes]
-   full_service = options[:full_service]
-   default_brand = options[:default_brand]
-   default_model = options[:default_model]
-   exceptions = options[:exceptions] || {}
+    notes = options[:notes]
+    full_service = options[:full_service]
+    default_brand = options[:default_brand]
+    default_model = options[:default_model]
+    exceptions = options[:exceptions] || {}
 
-   ActiveRecord::Base.transaction do
-     bicycle_updated = bicycle.record_maintenance(notes || "Maintenance performed")
+    ActiveRecord::Base.transaction do
+      bicycle_updated = bicycle.record_maintenance(notes || "Maintenance performed")
 
-     unless bicycle_updated
-       raise Api::V1::Errors::ValidationError.new(
-        "Failed to record bicycle maintenance",
-        bicycle.errors.full_messages
-       )
-     end
+      unless bicycle_updated
+        raise Api::V1::Errors::ValidationError.new(
+          "Failed to record bicycle maintenance",
+          bicycle.errors.full_messages
+        )
+      end
 
-     if full_service
-       validate_full_service_params(default_brand, default_model)
-       replace_all_components(bicycle, default_brand, default_model, exceptions)
-     elsif options[:replacements]
-      replace_specific_components(bicycle, options[:replacements])
-     end
-   end
+      if full_service
+        validate_full_service_params(default_brand, default_model)
+        replace_all_components(bicycle, default_brand, default_model, exceptions)
+      elsif options[:replacements]
+        replace_specific_components(bicycle, options[:replacements])
+      end
+    end
 
-   true
+    true
   rescue Api::V1::Errors::ApiError => e
     raise e
   rescue => e
@@ -75,7 +75,7 @@ class MaintenanceService
 
   def self.replace_specific_components(bicycle, replacements)
     replacements.each do |component_type, specs|
-      replace_component_type(bicycle, component_type.to_sym, specs)
+      replace_component_type(bicycle, component_type.to_s, specs)
     end
   end
 
@@ -114,7 +114,7 @@ class MaintenanceService
       unless component.update(status: "replaced", replaced_at: Time.current)
         raise Api::V1::Errors::ValidationError.new(
           "Failed to retire old #{component_type.singularize}",
-          omponent.errors.full_messages
+          component.errors.full_messages
         )
       end
     end

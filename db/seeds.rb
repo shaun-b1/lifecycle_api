@@ -73,9 +73,26 @@ users.each do |user_data|
     )
 
     # Create individual components using their respective methods
-    bike.create_chain(brand: bike_data.dig(:chain, :brand), kilometres: bike_data.dig(:chain, :kilometres)) if bike_data[:chain]
-    bike.create_cassette(brand: bike_data.dig(:cassette, :brand), kilometres: bike_data.dig(:cassette, :kilometres)) if bike_data[:cassette]
-    bike.create_chainring(brand: bike_data.dig(:chainring, :brand), kilometres: bike_data.dig(:chainring, :kilometres)) if bike_data[:chainring]
+    if bike_data[:chain]
+      bike.create_chain(
+        brand: bike_data.dig(:chain, :brand),
+        kilometres: bike_data.dig(:chain, :kilometres)
+      )
+    end
+
+    if bike_data[:cassette]
+      bike.create_cassette(
+        brand: bike_data.dig(:cassette, :brand),
+        kilometres: bike_data.dig(:cassette, :kilometres)
+      )
+    end
+
+    if bike_data[:chainring]
+      bike.create_chainring(
+        brand: bike_data.dig(:chainring, :brand),
+        kilometres: bike_data.dig(:chainring, :kilometres)
+      )
+    end
 
     # Create multiple tires and brakepads
     bike_data[:tires]&.each do |tire_data|
@@ -88,4 +105,14 @@ users.each do |user_data|
   end
 end
 
-puts "Seeding complete! Created #{User.count} users, #{Bicycle.count} bicycles, #{Chain.count} chains, #{Cassette.count} cassettes, #{Chainring.count} chainrings, #{Tire.count} tires, and #{Brakepad.count} brakepads."
+counts = [
+  "#{User.count} users",
+  "#{Bicycle.count} bicycles",
+  "#{Chain.count} chains",
+  "#{Cassette.count} cassettes",
+  "#{Chainring.count} chainrings",
+  "#{Tire.count} tires",
+  "#{Brakepad.count} brakepads"
+]
+
+puts "Seeding complete! Created #{counts.join(', ')}."
