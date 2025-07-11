@@ -36,6 +36,7 @@ RSpec.describe Service, type: :model do
 
       expect(service).to be_invalid
       expect(service.errors[:service_type]).to be_present
+      expect(service.errors[:service_type]).to include("must be a valid service type")
     end
 
     it "accepts valid service_types" do
@@ -83,120 +84,97 @@ RSpec.describe Service, type: :model do
     end
   end
 
-  # === SCOPES ===
   describe "scopes" do
-    # setup:
-    #   create old_service with performed_at 1 month ago
-    #   create recent_service with performed_at 1 day ago
-    #   create tune_up_service with service_type "tune_up"
-    #   create full_service with service_type "full_service"
+    let!(:old_service) { create(:service, bicycle: bicycle, performed_at: 1.month.ago) }
+    let!(:recent_service) { create(:service, bicycle: bicycle, performed_at: 1.day.ago) }
+    let!(:tune_up_service) { create(:service, bicycle: bicycle, service_type: "tune_up") }
+    let!(:full_service) { create(:service, bicycle: bicycle, service_type: "full_service") }
 
     it "recent scope orders by performed_at desc" do
-      # result = Service.recent
-      # expect first result to be recent_service
-      # expect second result to be old_service
+      result = Service.recent
+      timestamps = result.pluck(:performed_at)
+
+      expect(timestamps).to eq(timestamps.sort.reverse)
     end
 
     it "by_type scope filters by service_type" do
-      # result = Service.by_type("tune_up")
-      # expect result to include tune_up_service
-      # expect result to not include full_service
+      result = Service.by_type("tune_up")
+
+      expect(result).to include(tune_up_service)
+      expect(result).not_to include(full_service)
     end
 
     it "this_year scope filters to current year" do
-      # create last_year_service with performed_at last year
-      # result = Service.this_year
-      # expect result to include recent_service
-      # expect result to not include last_year_service
+      last_year_service = create(:service, bicycle: bicycle, performed_at: 1.year.ago)
+      result = Service.this_year
+
+      expect(result).to include(recent_service)
+      expect(result).not_to include(last_year_service)
     end
   end
 
-  # === INSTANCE METHODS ===
   describe "instance methods" do
-    # setup:
-    #   create service
-    #   create chain_replacement for service
-    #   create cassette_replacement for service
-    #   create cleaning_action for service
+    describe "#full_service?" do
+      it "returns true for full_service type" do
+        service.service_type = "full_service"
+        expect(service.full_service?).to be true
+      end
 
-    it "#full_service? returns true for full_service type" do
-      # set service service_type to "full_service"
-      # expect service.full_service? to be true
+      it "returns false for other types" do
+        service.service_type = "tune_up"
+        expect(service.full_service?).to be false
+      end
     end
 
-    it "#full_service? returns false for other types" do
-      # set service service_type to "tune_up"
-      # expect service.full_service? to be false
-    end
+    describe "#components_replaced" do
+      it "lists unique component types" do
+        service.save!
+        create(:component_replacement, service: service, component_type: "chain")
+        create(:component_replacement, service: service, component_type: "cassette")
 
-    it "#components_replaced lists unique component types" do
-      # result = service.components_replaced
-      # expect result to include "chain"
-      # expect result to include "cassette"
-      # expect result length to be 2
-    end
+        result = service.components_replaced
+        expect(result).to include("chain", "cassette")
+        expect(result.length).to eq(2)
+      end
 
-    it "#components_replaced handles no replacements" do
-      # service_without_replacements = create service
-      # expect service_without_replacements.components_replaced to be empty
-    end
-  end
+      it "deduplicates multiple components of same type" do
+        service.save!
+        create(:component_replacement, service: service, component_type: "tire")
+        create(:component_replacement, service: service, component_type: "tire")
 
-  # === FACTORY VALIDATION ===
-  describe "factory" do
-    it "service factory creates valid service" do
-      # service = create service
-      # expect service to be valid
-      # expect service to be persisted
-      # expect service.bicycle to be present
-    end
+        result = service.components_replaced
+        expect(result).to eq(["tire"])
+      end
 
-    it "service factory with bicycle creates valid service" do
-      # bicycle = create bicycle
-      # service = create service with bicycle
-      # expect service.bicycle to equal bicycle
+      it "returns empty array when no replacements exist" do
+        service.save!
+        expect(service.components_replaced).to be_empty
+      end
     end
   end
 
-  # === EDGE CASES ===
   describe "edge cases" do
-    it "handles very long notes" do
-      # long_notes = "A" repeated 1000 times
-      # set service notes to long_notes
-      # expect service to be valid
+    it "allows future scheduled maintenance" do
+      service.performed_at = 2.weeks.from_now
+      expect(service).to be_valid
     end
 
-    it "handles future performed_at dates" do
-      # set service performed_at to 1 day from now
-      # expect service to be valid
+    it "handles service on bicycle's creation day" do
+      service.performed_at = bicycle.created_at + 1.hour
+      expect(service).to be_valid
     end
 
-    it "handles performed_at far in past" do
-      # set service performed_at to 10 years ago
-      # expect service to be valid
+    it "validates comprehensive maintenance notes" do
+      detailed_notes = "A" * 2000  # Very long notes
+      service.notes = detailed_notes
+      expect(service).to be_valid
     end
 
-    it "notes can contain special characters" do
-      # special_notes = "Service with émojis 🔧 and symbols: @#$%"
-      # set service notes to special_notes
-      # expect service to be valid
-    end
-  end
-
-  # === INTEGRATION WITH BICYCLE ===
-  describe "bicycle integration" do
-    it "bicycle can have multiple services" do
-      # service1 = create service with bicycle
-      # service2 = create service with bicycle
-      # expect bicycle.services to include service1
-      # expect bicycle.services to include service2
-    end
-
-    it "service knows its bicycle's user" do
-      # user = create user
-      # bicycle = create bicycle with user
-      # service = create service with bicycle
-      # expect service.bicycle.user to equal user
+    it "allows service type changes" do
+      service.service_type = "partial_replacement"
+      service.save!
+      service.service_type = "full_service"
+      expect(service).to be_valid
     end
   end
 end
