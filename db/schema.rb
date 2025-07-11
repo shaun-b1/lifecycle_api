@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_11_034056) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_11_063236) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -111,6 +111,16 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_11_034056) do
     t.index ["trackable_type", "trackable_id"], name: "index_kilometre_logs_on_trackable"
   end
 
+  create_table "maintenance_actions", force: :cascade do |t|
+    t.bigint "service_id", null: false
+    t.string "component_type"
+    t.text "action_performed"
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["service_id"], name: "index_maintenance_actions_on_service_id"
+  end
+
   create_table "services", force: :cascade do |t|
     t.bigint "bicycle_id", null: false
     t.datetime "performed_at", null: false
@@ -158,6 +168,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_11_034056) do
   add_foreign_key "chainrings", "bicycles"
   add_foreign_key "chains", "bicycles"
   add_foreign_key "component_replacements", "services"
+  add_foreign_key "maintenance_actions", "services"
   add_foreign_key "services", "bicycles"
   add_foreign_key "tires", "bicycles"
 end

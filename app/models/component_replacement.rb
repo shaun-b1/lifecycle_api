@@ -8,9 +8,6 @@ class ComponentReplacement < ApplicationRecord
   validates :reason, presence: true
   validates :new_component_specs, presence: true
 
-  serialize :old_component_specs, JSON
-  serialize :new_component_specs, JSON
-
   scope :by_component, ->(type) { where(component_type: type) }
   scope :recent, -> { joins(:service).order('services.performed_at DESC') }
 

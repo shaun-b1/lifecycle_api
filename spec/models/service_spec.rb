@@ -1,58 +1,46 @@
 require 'rails_helper'
 
 RSpec.describe Service, type: :model do
-  # === SETUP ===
   let(:user) { create(:user) }
   let(:bicycle) { create(:bicycle, user: user) }
   let(:service) { build(:service, bicycle: bicycle) }
 
-  # === VALIDATIONS ===
   describe "validations" do
     it "valid with all required attributes" do
-      # expect service to be valid
       expect(service).to be_valid
     end
 
     it "requires performed_at" do
-      # set service performed_at to nil
       service.performed_at = nil
-      # expect service to be invalid
+
       expect(service).to be_invalid
-      # expect error on performed_at field
       expect(service.errors[:performed_at]).to be_present
     end
 
     it "requires notes" do
-      # set service notes to nil
       service.notes = nil
-      # expect service to be invalid
+
       expect(service).to be_invalid
-      # expect error on notes field
       expect(service.errors[:notes]).to be_present
     end
 
     it "requires notes to not be blank" do
-      # set service notes to empty string
       service.notes = ""
-      # expect service to be invalid
+
       expect(service).to be_invalid
       expect(service.errors[:notes]).to be_present
     end
 
     it "validates service_type inclusion" do
-      # set service service_type to "invalid_type"
       service.service_type = "invalid_type"
-      # expect service to be invalid
+
       expect(service).to be_invalid
-      # expect error message about valid service types
       expect(service.errors[:service_type]).to be_present
     end
 
     it "accepts valid service_types" do
       valid_types = ["full_service", "partial_replacement", "tune_up", "emergency_repair", "inspection"]
-      # for each type in valid_types:
-      #   set service service_type to type
-      #   expect service to be valid
+
       valid_types.each do |type|
         test_service = build(:service, bicycle: bicycle, service_type: type)
         expect(test_service).to be_valid
@@ -60,33 +48,38 @@ RSpec.describe Service, type: :model do
     end
   end
 
-  # === ASSOCIATIONS ===
   describe "associations" do
     it "belongs to bicycle" do
-      # expect Service to belong_to bicycle
+      expect(service).to belong_to(:bicycle)
     end
 
     it "requires bicycle to exist" do
-      # set service bicycle to nil
-      # expect service to be invalid
+      service.bicycle = nil
+
+      expect(service).to be_invalid
+      expect(service.errors[:bicycle]).to be_present
     end
 
     it "has many component_replacements" do
-      # expect Service to have_many component_replacements
+      expect(service).to have_many(:component_replacements)
     end
 
     it "destroys component_replacements when service destroyed" do
-      # create service with bicycle
-      # create component_replacement for service
-      # expect destroying service to destroy component_replacements
+      created_service = create(:service, bicycle: bicycle)
+      create(:component_replacement, service: created_service)
+
+      expect { created_service.destroy }.to change { ComponentReplacement.count }.by(-1)
     end
 
     it "has many maintenance_actions" do
-      # expect Service to have_many maintenance_actions
+      expect(service).to have_many(:maintenance_actions)
     end
 
     it "destroys maintenance_actions when service destroyed" do
-      # similar to component_replacements test
+      created_service = create(:service, bicycle: bicycle)
+      create(:maintenance_action, service: created_service)
+
+      expect { created_service.destroy }.to change { MaintenanceAction.count }.by(-1)
     end
   end
 
