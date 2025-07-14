@@ -30,13 +30,12 @@ class Api::V1::BicyclesController < ApplicationController
     authorize @bicycle
 
     begin
-      maintenance_options = build_maintenance_options
-      Api::V1::MaintenanceService.record_maintenance(@bicycle, maintenance_options)
+      service = Api::V1::MaintenanceService.record_maintenance(@bicycle, build_maintenance_options)
 
       response = Api::V1::ResponseService.success(
         ActiveModelSerializers::SerializableResource.new(
-          @bicycle.reload,
-          serializer: resource_serializer
+          service,
+          include: [:component_replacements, :maintenance_actions]
         ).as_json,
         "Maintenance recorded successfully"
       )
@@ -93,6 +92,14 @@ class Api::V1::BicyclesController < ApplicationController
       options[:replacements] = format_replacements(params[:replacements])
     end
 
+    if params[:maintenance_actions].present?
+      options[:maintenance_actions] = format_maintenance_actions(params[:maintenance_actions])
+    end
+
+    if params[:maintenance_actions].present?
+      options[:maintenance_actions] = params[:maintenance_actions]
+    end
+
     options
   end
 
@@ -128,5 +135,14 @@ class Api::V1::BicyclesController < ApplicationController
     end
 
     formatted
+  end
+
+  def format_maintenance_actions(maintenance_actions_params)
+    Array(maintenance_actions_params).map do |action|
+      {
+        component_type: action[:component_type],
+        action_performed: action[:action_performed]
+      }
+    end
   end
 end

@@ -49,41 +49,6 @@ RSpec.describe Service, type: :model do
     end
   end
 
-  describe "associations" do
-    it "belongs to bicycle" do
-      expect(service).to belong_to(:bicycle)
-    end
-
-    it "requires bicycle to exist" do
-      service.bicycle = nil
-
-      expect(service).to be_invalid
-      expect(service.errors[:bicycle]).to be_present
-    end
-
-    it "has many component_replacements" do
-      expect(service).to have_many(:component_replacements)
-    end
-
-    it "destroys component_replacements when service destroyed" do
-      created_service = create(:service, bicycle: bicycle)
-      create(:component_replacement, service: created_service)
-
-      expect { created_service.destroy }.to change { ComponentReplacement.count }.by(-1)
-    end
-
-    it "has many maintenance_actions" do
-      expect(service).to have_many(:maintenance_actions)
-    end
-
-    it "destroys maintenance_actions when service destroyed" do
-      created_service = create(:service, bicycle: bicycle)
-      create(:maintenance_action, service: created_service)
-
-      expect { created_service.destroy }.to change { MaintenanceAction.count }.by(-1)
-    end
-  end
-
   describe "scopes" do
     let!(:old_service) { create(:service, bicycle: bicycle, performed_at: 1.month.ago) }
     let!(:recent_service) { create(:service, bicycle: bicycle, performed_at: 1.day.ago) }

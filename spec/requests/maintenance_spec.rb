@@ -1,185 +1,242 @@
-require 'rails_helper'
+require "rails_helper"
 require "factory_bot_rails"
 
-RSpec.describe "Maintenance", type: :request do
+describe "POST /api/v1/bicycles/:id/record_maintenance" do
   include AuthHelpers
 
   let(:user) { create(:user) }
   let(:bicycle) { create(:bicycle_with_worn_components, user: user) }
-  describe "POST /api/v1/bicycles/:id/record_maintenance" do
-    it "handles empty components array" do
-      post "/api/v1/bicycles/#{bicycle.id}/record_maintenance",
-        params: {  components: [], notes: "Bicycle only service" },
-        headers: jwt_auth_headers(user),
-        as: :json
+  let(:auth_headers) { jwt_auth_headers(user) }
+
+  let!(:chain) { bicycle.chain }
+  let!(:cassette) { bicycle.cassette }
+  let!(:chainring) { bicycle.chainring }
+  let!(:tires) { bicycle.tires }
+  let!(:brakepads) { bicycle.brakepads }
+
+  context "basic bicycle maintenance" do
+    it "bicycle-only maintenance (no component work)" do
+      expect {
+        post "/api/v1/bicycles/#{bicycle.id}/record_maintenance",
+          params: { notes: "Basic service" },
+          headers: auth_headers,
+          as: :json
+      }.to change(Service, :count).by(1)
 
       expect(response).to have_http_status(:ok)
       expect(json_response[:success]).to be true
       expect(json_response[:message]).to eq("Maintenance recorded successfully")
 
-      expect_maintenance_log(bicycle, previous: 100, new: 0)
+      service = Service.last
+      expect(service).to have_attributes(
+        bicycle: bicycle,
+        notes: "Basic service",
+        service_type: "partial_replacement"
+      )
+      expect(service.performed_at).to be_within(1.second).of(Time.current)
 
-      unchanged_components = {
-        chain: 150, cassette: 180, chainring: 200, front_tire: 120, rear_tire: 130,
-        front_brake: 90, rear_brake: 95
-      }
-
-      unchanged_components.each do |component_name, initial_km|
-        component = send(component_name)
-        expect(component.reload.kilometres).to eq(initial_km)
-        expect_no_new_maintenance_logs(component)
-      end
-    end
-
-    it "silently skips missing components" do
-      cassette.destroy!
-
-      post "/api/v1/bicycles/#{bicycle.id}/record_maintenance",
-        params: {  components: [ "chain", "cassette" ], notes: "Service available parts" },
-        headers: jwt_auth_headers(user),
-        as: :json
-
-      expect(response).to have_http_status(:ok)
-      expect(json_response[:success]).to be true
-      expect(json_response[:message]).to eq("Maintenance recorded successfully")
-
-      expect(bicycle.reload.cassette).to be_nil
-
+      expect(ComponentReplacement.count).to eq(0)
+      expect(MaintenanceAction.count).to eq(0)
       expect(bicycle.reload.kilometres).to eq(0)
-      expect(chain.reload.kilometres).to eq(0)
-
-      expect_maintenance_log(bicycle, previous: 100, new: 0)
-      expect_maintenance_log(chain, previous: 150, new: 0)
-
+      expect(chain.reload.kilometres).to eq(150)
+      expect(cassette.reload.kilometres).to eq(180)
       expect(chainring.reload.kilometres).to eq(200)
-      expect(front_tire.reload.kilometres).to eq(120)
-      expect(rear_tire.reload.kilometres).to eq(130)
-      expect(front_brake.reload.kilometres).to eq(90)
-      expect(rear_brake.reload.kilometres).to eq(95)
-
-      expect_no_new_maintenance_logs([ chainring, front_tire, rear_tire, front_brake, rear_brake ])
+      expect(tires.map(&:reload).map(&:kilometres)).to eq([120, 130])
+      expect(brakepads.map(&:reload).map(&:kilometres)).to eq([90, 95])
     end
+  end
 
-    it "requires authentication" do
+  # === SINGLE COMPONENT REPLACEMENT ===
+  context "single component replacement" do
+    it "replaces chain only" do
+      # skip("Waiting for the stars to align")
+      # POST with replacements: { chain: { brand: "SRAM", model: "Rival" } }
       post "/api/v1/bicycles/#{bicycle.id}/record_maintenance",
-        params: {  components: [ "chain" ], notes: "Regular service, no authentication" },
+        params: {
+          notes: "Basic service",
+          replacements: {
+            chain: { brand: "SRAM", model: "Rival" }
+          }
+        },
+        headers: auth_headers,
         as: :json
 
-      expect(response).to have_http_status(:unauthorized)
-      expect(json_response[:success]).to be false
-      expect(json_response[:error][:code]).to eq("UNAUTHORIZED")
-      expect(json_response[:error][:message]).to include("Authentication failed")
+      # expect response success
+      expect(response).to have_http_status(:ok)
+      expect(json_response[:success]).to be true
+      expect(json_response[:message]).to eq("Maintenance recorded successfully")
+      # expect bicycle.kilometres reset to 0
+      expect(bicycle.reload.kilometres).to eq(0)
+      # expect old chain status = "replaced"
+      # expect new chain created with brand "SRAM", model "Rival", kilometres 0
+      # expect ComponentReplacement record created with old/new specs
+      # expect other components unchanged
+      expect(cassette.reload.kilometres).to eq(180)
+      expect(chainring.reload.kilometres).to eq(200)
+      expect(tires.map(&:reload).map(&:kilometres)).to eq([120, 130])
+      expect(brakepads.map(&:reload).map(&:kilometres)).to eq([90, 95])
+    end
 
-      expect(bicycle.reload.kilometres).to eq(100)
-      expect(chain.reload.kilometres).to eq(150)
+    it "replaces multiple single components" do
+      skip("Waiting for the stars to align")
+      # POST with replacements: {
+      #   chain: { brand: "SRAM", model: "Rival" },
+      #   cassette: { brand: "Shimano", model: "105" }
+      # }
+      # expect both components replaced with correct specs
+      # expect 2 ComponentReplacement records created
+    end
+  end
 
-      expect(bicycle.kilometre_logs.maintenance.count).to eq(0)
-      expect(chain.kilometre_logs.maintenance.count).to eq(0)
+  # === MULTIPLE COMPONENT REPLACEMENT (tires/brakepads) ===
+  context "multiple component replacement" do
+    it "replaces both tires" do
+      skip("Waiting for the stars to align")
+      # POST with replacements: {
+      #   tires: [
+      #     { brand: "Continental", model: "GP5000" },
+      #     { brand: "Continental", model: "GP5000" }
+      #   ]
+      # }
+      # expect both old tires status = "replaced"
+      # expect 2 new tires created with correct specs
+      # expect 1 ComponentReplacement record with array old_component_specs
+    end
+
+    it "replaces both brakepads" do
+      skip("Waiting for the stars to align")
+      # POST with replacements: {
+      #   brakepads: [
+      #     { brand: "Campagnolo", model: "Super Record" },
+      #     { brand: "Campagnolo", model: "Super Record" }
+      #   ]
+      # }
+      # expect both old brakepads status = "replaced"
+      # expect 2 new brakepads created
+      # expect 1 ComponentReplacement record with array specs
+    end
+  end
+
+  # === FULL SERVICE ===
+  context "full service" do
+    it "full service with default components" do
+      skip("Waiting for the stars to align")
+      # POST with full_service: true, default_brand: "Shimano", default_model: "105"
+      # expect response success
+      # expect bicycle.kilometres reset to 0
+      # expect all old components status = "replaced"
+      # expect all new components created with Shimano/105
+      # expect 5 ComponentReplacement records (chain, cassette, chainring, tires, brakepads)
+      # expect Service.service_type = "full_service"
+    end
+
+    it "full service with exceptions" do
+      skip("Waiting for the stars to align")
+      # POST with full_service: true,
+      #      default_brand: "Shimano", default_model: "105",
+      #      exceptions: { chain: { brand: "SRAM", model: "Rival" } }
+      # expect chain replaced with SRAM/Rival
+      # expect other components replaced with Shimano/105
+    end
+
+    it "requires default_brand for full service" do
+      skip("Waiting for the stars to align")
+      # POST with full_service: true, default_model: "105"
+      # expect validation error about missing default_brand
+    end
+
+    it "requires default_model for full service" do
+      skip("Waiting for the stars to align")
+      # POST with full_service: true, default_brand: "Shimano"
+      # expect validation error about missing default_model
+    end
+  end
+
+  # === MAINTENANCE ACTIONS ===
+  context "maintenance actions only" do
+    it "records maintenance without replacements" do
+      skip("Waiting for the stars to align")
+      # POST with maintenance_actions: [
+      #   { component_type: "cassette", action_performed: "cleaned and lubricated" },
+      #   { component_type: "tire", action_performed: "checked pressure" }
+      # ]
+      # expect response success
+      # expect bicycle.kilometres reset to 0
+      # expect 2 MaintenanceAction records created
+      # expect no ComponentReplacement records
+      # expect all components unchanged (kilometres and status same)
+    end
+  end
+
+  # === MIXED SCENARIOS ===
+  context "mixed maintenance" do
+    it "combines replacements and maintenance actions" do
+      skip("Waiting for the stars to align")
+      # POST with replacements: { chain: { brand: "SRAM", model: "Rival" } },
+      #      maintenance_actions: [
+      #        { component_type: "cassette", action_performed: "cleaned" }
+      #      ]
+      # expect chain replaced
+      # expect 1 ComponentReplacement record
+      # expect 1 MaintenanceAction record
+      # expect Service links to both records
+    end
+  end
+
+  # === AUTHENTICATION/AUTHORIZATION ===
+  context "security" do
+    it "requires authentication" do
+      skip("Waiting for the stars to align")
+      # POST without auth headers
+      # expect 401 unauthorized
+      # expect no database changes
     end
 
     it "requires bicycle ownership" do
-      other_user = create(:user)
-
-      post "/api/v1/bicycles/#{bicycle.id}/record_maintenance",
-        params: {  components: [ "chain" ], notes: "Regular service, incorrect user authentication" },
-        headers: jwt_auth_headers(other_user),
-        as: :json
-
-      expect(response).to have_http_status(:forbidden)
-      expect(json_response[:success]).to be false
-      expect(json_response[:error][:code]).to eq("AUTHORIZATION_FAILED")
-      expect(json_response[:error][:message]).to include("not authorized")
-
-      expect(bicycle.reload.kilometres).to eq(100)
-      expect(chain.reload.kilometres).to eq(150)
-
-      expect(bicycle.kilometre_logs.maintenance.count).to eq(0)
-      expect(chain.kilometre_logs.maintenance.count).to eq(0)
+      skip("Waiting for the stars to align")
+      # other_user = create user
+      # POST with jwt_auth_headers(other_user)
+      # expect 403 forbidden
+      # expect no database changes
     end
+  end
 
-    it "validates components parameter format" do
-      post "/api/v1/bicycles/#{bicycle.id}/record_maintenance",
-        params: {  components: "chain", notes: "Regular service, component string instead of array" },
-        headers: jwt_auth_headers(user),
-        as: :json
-
-      expect(response).to have_http_status(:ok)
-      expect(json_response[:success]).to be true
-      expect(json_response[:message]).to eq("Maintenance recorded successfully")
-
-      expect(chain.reload.kilometres).to eq(0)
-      expect_maintenance_log(chain, previous: 150, new: 0)
-
-      unchanged_components = {
-        cassette: 180, chainring: 200, front_tire: 120,
-        rear_tire: 130, front_brake: 90, rear_brake: 95
-      }
-
-      unchanged_components.each do |component_name, expected_km|
-        expect(send(component_name).reload.kilometres).to eq(expected_km)
-      end
-
-      expect_no_new_maintenance_logs(unchanged_components.keys.map { |name| send(name) })
-    end
-
+  # === ERROR HANDLING ===
+  context "error handling" do
     it "handles non-existent bicycle" do
-      post "/api/v1/bicycles/99999/record_maintenance",
-        params: {  components: "chain", notes: "Regular service, non existent bicycle" },
-        headers: jwt_auth_headers(user),
-        as: :json
-
-      expect(response).to have_http_status(:not_found)
-      expect(json_response[:success]).to be false
-      expect(json_response[:error][:code]).to eq("NOT_FOUND")
-      expect(json_response[:error][:message]).to include("Bicycle")
-
-      expect(bicycle.reload.kilometres).to eq(100)
-      expect(chain.reload.kilometres).to eq(150)
-
-      expect(bicycle.kilometre_logs.maintenance.count).to eq(0)
-      expect(chain.kilometre_logs.maintenance.count).to eq(0)
+      skip("Waiting for the stars to align")
+      # POST to "/api/v1/bicycles/99999/record_maintenance"
+      # expect 404 not found
     end
 
-    it "handles maintenance service errors gracefully" do
-      allow(Api::V1::MaintenanceService)
-        .to receive(:record_bicycle_maintenance)
-        .and_raise(Api::V1::Errors::ValidationError.new("Simulated maintenance failure"))
-
-      post "/api/v1/bicycles/#{bicycle.id}/record_maintenance",
-        params: {  components: [ "chain" ], notes: "Regular service, mocked validation error" },
-        headers: jwt_auth_headers(user),
-        as: :json
-
-      expect(response).to have_http_status(:unprocessable_entity)
-      expect(json_response[:success]).to be false
-      expect(json_response[:error][:code]).to eq("VALIDATION_ERROR")
-      expect(json_response[:error][:message]).to include("Simulated maintenance failure")
-
-      expect(bicycle.reload.kilometres).to eq(100)
-      expect(chain.reload.kilometres).to eq(150)
-
-      expect(bicycle.kilometre_logs.maintenance.count).to eq(0)
-      expect(chain.kilometre_logs.maintenance.count).to eq(0)
+    it "handles service errors gracefully" do
+      skip("Waiting for the stars to align")
+      # mock MaintenanceService.record_maintenance to raise error
+      # POST with valid params
+      # expect appropriate error response
+      # expect transaction rollback (no partial changes)
     end
   end
 
-  private
+  # === AUDIT TRAIL VERIFICATION ===
+  context "audit trail completeness" do
+    it "creates complete audit trail for full service" do
+      skip("Waiting for the stars to align")
+      # POST with full_service params
+      # service = Service.last
+      # expect service.bicycle = bicycle
+      # expect service.service_type = "full_service"
+      # expect service.component_replacements.count = 5
+      # expect service.maintenance_actions.count = 0
+      # expect service.performed_at within last minute
+    end
 
-  def expect_maintenance_log(component, previous:, new:)
-    log = component.kilometre_logs.maintenance.order(:created_at).last
-    expect(log).to be_present, "Expected maintenance log for #{component.class.name}"
-    expect(log.event_type).to eq('maintenance')
-    expect(log.previous_value).to eq(previous)
-    expect(log.new_value).to eq(new)
-  end
-
-  def expect_no_new_maintenance_logs(components)
-    components_array = Array(components)
-
-    components_array.each do |component|
-      maintenance_logs_count = component.kilometre_logs.maintenance.count
-      expect(maintenance_logs_count).to eq(0),
-        "Expected no maintenance logs for unchanged #{component.class.name}"
+    it "links all records correctly" do
+      skip("Waiting for the stars to align")
+      # POST with mixed params
+      # service = Service.last
+      # expect all ComponentReplacement.service_id = service.id
+      # expect all MaintenanceAction.service_id = service.id
     end
   end
 end

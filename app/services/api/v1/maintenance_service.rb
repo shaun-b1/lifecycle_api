@@ -4,15 +4,21 @@ class Api::V1::MaintenanceService
       raise Api::V1::Errors::ResourceNotFoundError.new("Bicycle")
     end
 
-    notes = options[:notes]
+    notes = options[:notes] || "Maintenance performed"
     full_service = options[:full_service]
     default_brand = options[:default_brand]
     default_model = options[:default_model]
     exceptions = options[:exceptions] || {}
 
     ActiveRecord::Base.transaction do
-      bicycle_updated = bicycle.record_maintenance(notes || "Maintenance performed")
+      service = Service.create!(
+        bicycle: bicycle,
+        performed_at: Time.current,
+        service_type: full_service ? "full_service" : "partial_replacement",
+        notes: notes
+      )
 
+      bicycle_updated = bicycle.record_maintenance(notes)
       unless bicycle_updated
         raise Api::V1::Errors::ValidationError.new(
           "Failed to record bicycle maintenance",
@@ -22,13 +28,15 @@ class Api::V1::MaintenanceService
 
       if full_service
         validate_full_service_params(default_brand, default_model)
-        replace_all_components(bicycle, default_brand, default_model, exceptions)
+        replace_all_components(bicycle, service, default_brand, default_model, exceptions)
       elsif options[:replacements]
-        replace_specific_components(bicycle, options[:replacements])
+        replace_specific_components(bicycle, service, options[:replacements])
       end
-    end
 
-    true
+      create_maintenance_actions(service, options[:maintenance_actions])
+
+      service
+    end
   rescue Api::V1::Errors::ApiError => e
     raise e
   rescue => e
@@ -60,36 +68,50 @@ class Api::V1::MaintenanceService
     end
   end
 
-  def self.replace_all_components(bicycle, default_brand, default_model, exceptions)
+  def self.replace_all_components(bicycle, service, default_brand, default_model, exceptions)
     component_types = %w[chain cassette chainring tires brakepads]
 
     component_types.each do |component_type|
       if exceptions[component_type.to_sym]
-        replace_component_type(bicycle, component_type, exceptions[component_type.to_sym])
+        replace_component_type(bicycle, service, component_type, exceptions[component_type.to_sym])
       else
         specs = { brand: default_brand, model: default_model }
-        replace_component_type(bicycle, component_type, specs)
+        replace_component_type(bicycle, service, component_type, specs)
       end
     end
   end
 
-  def self.replace_specific_components(bicycle, replacements)
+  def self.replace_specific_components(bicycle, service, replacements)
     replacements.each do |component_type, specs|
-      replace_component_type(bicycle, component_type.to_s, specs)
+      replace_component_type(bicycle, service, component_type.to_s, specs)
     end
   end
 
-  def self.replace_component_type(bicycle, component_type, specs)
+  def self.replace_component_type(bicycle, service, component_type, specs)
     case component_type
     when "chain", "cassette", "chainring"
-      replace_single_component(bicycle, component_type, specs)
+      replace_single_component(bicycle, service, component_type, specs)
     when "tires", "brakepads"
-      replace_multiple_components(bicycle, component_type, specs)
+      replace_multiple_components(bicycle, service, component_type, specs)
     end
   end
 
-  def self.replace_single_component(bicycle, component_type, specs)
+  def self.replace_single_component(bicycle, service, component_type, specs)
     old_component = bicycle.send(component_type)
+
+    ComponentReplacement.create!(
+      service: service,
+      component_type: component_type,
+      old_component_specs: old_component ? {
+        brand: old_component.brand,
+        model: old_component.model,
+        kilometres: old_component.kilometres,
+        status: old_component.status
+      } : nil,
+      new_component_specs: specs.merge(status: "active"),
+      reason: "Component replacement during #{service.service_type}"
+    )
+
     if old_component
       unless old_component.update(status: "replaced", replaced_at: Time.current)
         raise Api::V1::Errors::ValidationError.new(
@@ -108,8 +130,24 @@ class Api::V1::MaintenanceService
     end
   end
 
-  def self.replace_multiple_components(bicycle, component_type, specs_array)
+  def self.replace_multiple_components(bicycle, service, component_type, specs_array)
     old_components = bicycle.send(component_type)
+
+    ComponentReplacement.create!(
+      service: service,
+      component_type: component_type.singularize, # "tire" not "tires"
+      old_component_specs: old_components.map do |component|
+        {
+          brand: component.brand,
+          model: component.model,
+          kilometres: component.kilometres,
+          status: component.status
+        }
+      end,
+      new_component_specs: Array(specs_array).map { |specs| specs.merge(status: "active") },
+      reason: "Component replacement during #{service.service_type}"
+    )
+
     old_components.each do |component|
       unless component.update(status: "replaced", replaced_at: Time.current)
         raise Api::V1::Errors::ValidationError.new(
@@ -128,6 +166,18 @@ class Api::V1::MaintenanceService
           new_component.errors.full_messages
         )
       end
+    end
+  end
+
+  def self.create_maintenance_actions(service, maintenance_actions)
+    return if maintenance_actions.blank?
+
+    maintenance_actions.each do |action|
+      MaintenanceAction.create!(
+        service: service,
+        component_type: action[:component_type],
+        action_performed: action[:action_performed]
+      )
     end
   end
 end
