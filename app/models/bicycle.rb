@@ -43,10 +43,6 @@ class Bicycle < ApplicationRecord
     component_replacement_history(component_type).first
   end
 
-  def service_cost_this_year
-    services.this_year.sum(&:total_cost)
-  end
-
   def create_chain(attributes)
     all_chains.create(attributes)
   end

@@ -40,6 +40,11 @@ class Api::V1::MaintenanceService
   rescue Api::V1::Errors::ApiError => e
     raise e
   rescue => e
+    puts "ACTUAL ERROR: #{e.class} - #{e.message}"
+    puts "BACKTRACE: #{e.backtrace.first(5).join("\n")}"
+    Rails.logger.error("ACTUAL ERROR: #{e.class} - #{e.message}")
+    Rails.logger.error("BACKTRACE: #{e.backtrace.join("\n")}")
+
     Rails.logger.error("Failed to record maintenance: #{e.message}")
     Rails.logger.error(e.backtrace.join("\n"))
 
@@ -75,8 +80,15 @@ class Api::V1::MaintenanceService
       if exceptions[component_type.to_sym]
         replace_component_type(bicycle, service, component_type, exceptions[component_type.to_sym])
       else
-        specs = { brand: default_brand, model: default_model }
-        replace_component_type(bicycle, service, component_type, specs)
+        case component_type
+        when "chain", "cassette", "chainring"
+          specs = { brand: default_brand, model: default_model }
+          replace_component_type(bicycle, service, component_type, specs)
+        when "tires", "brakepads"
+          old_components = bicycle.send(component_type)
+          specs_array = old_components.map { { brand: default_brand, model: default_model } }
+          replace_component_type(bicycle, service, component_type, specs_array)
+        end
       end
     end
   end
