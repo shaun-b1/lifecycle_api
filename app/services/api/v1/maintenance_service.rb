@@ -18,7 +18,7 @@ class Api::V1::MaintenanceService
         notes: notes
       )
 
-      bicycle_updated = bicycle.record_maintenance(notes)
+      bicycle_updated = bicycle.reset_kilometres(notes)
       unless bicycle_updated
         raise Api::V1::Errors::ValidationError.new(
           "Failed to record bicycle maintenance",

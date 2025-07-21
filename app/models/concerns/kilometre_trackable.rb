@@ -16,7 +16,7 @@ module KilometreTrackable
     save
   end
 
-  def record_maintenance(notes = nil)
+  def reset_kilometres(notes = nil)
     self.pending_notes = notes || "Maintenance performed"
     self.maintenance_mode = true
     self.kilometres = 0
