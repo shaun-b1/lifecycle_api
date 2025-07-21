@@ -24,7 +24,6 @@ FactoryBot.define do
       particulate { "low" }
     end
 
-    # Nested factory for a bicycle with components
     factory :bicycle_with_components do
       after(:create) do |bicycle|
         create(:chain, bicycle: bicycle)
@@ -32,6 +31,20 @@ FactoryBot.define do
         create(:chainring, bicycle: bicycle)
         create_list(:tire, 2, bicycle: bicycle)
         create_list(:brakepad, 2, bicycle: bicycle)
+      end
+    end
+
+    factory :bicycle_with_worn_components do
+      kilometres { 100 }
+
+      after(:create) do |bicycle|
+        create(:chain, bicycle: bicycle, kilometres: 150)
+        create(:cassette, bicycle: bicycle, kilometres: 180)
+        create(:chainring, bicycle: bicycle, kilometres: 200)
+        create(:tire, bicycle: bicycle, kilometres: 120)
+        create(:tire, bicycle: bicycle, kilometres: 130)
+        create(:brakepad, bicycle: bicycle, kilometres: 90)
+        create(:brakepad, bicycle: bicycle, kilometres: 95)
       end
     end
   end

@@ -139,10 +139,10 @@ RSpec.describe KilometreTrackable do
     end
   end
 
-  describe "#record_maintenance" do
+  describe "#reset_kilometres" do
     it "resets kilometres to zero and creates maintenance log" do
       expect {
-        result = trackable.record_maintenance("Regular service")
+        result = trackable.reset_kilometres("Regular service")
         expect(result).to be true
       }. to change { trackable.reload.kilometres }.from(100).to(0)
       .and change { trackable.kilometre_logs.count }.by(1)
@@ -161,7 +161,7 @@ RSpec.describe KilometreTrackable do
       initial_kilometres = trackable.reload.kilometres
       initial_log_count = trackable.kilometre_logs.count
 
-      result = trackable.record_maintenance("Service")
+      result = trackable.reset_kilometres("Service")
 
       expect(result).to be false
       expect(trackable.reload.kilometres).to eq(initial_kilometres)
@@ -170,7 +170,7 @@ RSpec.describe KilometreTrackable do
 
     it "uses default notes when none provided" do
       expect {
-        result = trackable.record_maintenance
+        result = trackable.reset_kilometres
         expect(result).to be true
       }.to change { trackable.kilometre_logs.count }.by(1)
 
@@ -187,7 +187,7 @@ RSpec.describe KilometreTrackable do
       trackable.update(kilometres: 0)
 
       expect {
-        result = trackable.record_maintenance("Service")
+        result = trackable.reset_kilometres("Service")
         expect(result).to be true
       }.to change { trackable.kilometre_logs.count }.by(1)
 
@@ -202,9 +202,9 @@ RSpec.describe KilometreTrackable do
   describe "#lifetime_kilometres" do
     it "sums all ride kilometres correctly" do
       trackable.add_kilometres(50.0)
-      trackable.record_maintenance
+      trackable.reset_kilometres
       trackable.add_kilometres(30.0)
-      trackable.record_maintenance
+      trackable.reset_kilometres
       trackable.add_kilometres(20.0)
 
       expect(trackable.lifetime_kilometres).to eq(200.0)
@@ -224,19 +224,19 @@ RSpec.describe KilometreTrackable do
   describe "#maintenance_history" do
   it "returns maintenance logs ordered by date desc" do
     oldest_log = travel_to(3.days.ago) do
-      trackable.record_maintenance("Old service")
+      trackable.reset_kilometres("Old service")
       trackable.kilometre_logs.maintenance.last
     end
 
     middle_log = travel_to(1.day.ago) do
-      trackable.record_maintenance("Recent service")
+      trackable.reset_kilometres("Recent service")
       trackable.kilometre_logs.maintenance.last
     end
 
     trackable.add_kilometres(50.0, "Ride between maintenance")
 
     newest_log = travel_to(Time.current) do
-      trackable.record_maintenance("Latest service")
+      trackable.reset_kilometres("Latest service")
       trackable.kilometre_logs.maintenance.last
     end
 
@@ -261,19 +261,19 @@ RSpec.describe KilometreTrackable do
   describe "#last_maintenance_date" do
     it "returns date of most recent maintenance" do
       travel_to(1.month.ago) do
-        trackable.record_maintenance("Old service")
+        trackable.reset_kilometres("Old service")
         trackable.kilometre_logs.maintenance.last
       end
 
       travel_to(1.week.ago) do
-        trackable.record_maintenance("Recent service")
+        trackable.reset_kilometres("Recent service")
         trackable.kilometre_logs.maintenance.last
       end
 
       some_time = 2.days.ago
 
       travel_to(some_time) do
-        trackable.record_maintenance("Latest service")
+        trackable.reset_kilometres("Latest service")
         trackable.kilometre_logs.maintenance.last
       end
 
@@ -293,51 +293,88 @@ RSpec.describe KilometreTrackable do
 
   describe "integration with multiple models" do
     it "works with Bicycle model" do
-      # bicycle = create bicycle with concern
-      bicycle = create(:bicycle)
-      expect(bicycle.kilometre_logs).to be_empty
-      expect(bicycle.maintenance_logs)
-      # test basic functionality on bicycle
-      bicycle.add_kilometres
-      skip ("Waiting for the planets to align")
+      bicycle = create(:bicycle, kilometres: 50)
+      initial_log_count = bicycle.kilometre_logs.count
+      expect(bicycle.maintenance_history).to be_empty
+
+      bicycle.add_kilometres(25, "Test ride")
+      expect(bicycle.kilometre_logs.count).to eq(initial_log_count + 1)
+      expect(bicycle.kilometres).to eq(75)
+
+      bicycle.reset_kilometres("Service")
+      expect(bicycle.maintenance_history.count).to eq(1)
+      expect(bicycle.kilometres).to eq(0)
     end
 
     it "works with Component models" do
-      # chain = create chain with concern
-      # test basic functionality on chain
-      skip ("Waiting for the planets to align")
+      chain = create(:chain, kilometres: 100)
+      initial_log_count = chain.kilometre_logs.count
+
+      chain.add_kilometres(50, "Component wear")
+      expect(chain.kilometre_logs.count).to eq(initial_log_count + 1)
+      expect(chain.kilometres).to eq(150)
+
+      chain.reset_kilometres("Component service")
+      expect(chain.maintenance_history.count).to eq(1)
+      expect(chain.kilometres).to eq(0)
     end
 
     it "maintains separate logs per trackable" do
-      # bicycle and chain both include concern
-      # add kilometres to both
+      bicycle = create(:bicycle_with_components, kilometres: 100)
+      chain = bicycle.chain
 
-      # expect each has separate kilometre_logs
-      # expect no cross-contamination
-      skip ("Waiting for the planets to align")
+      bicycle_initial_count = bicycle.kilometre_logs.count
+      chain_initial_count = chain.kilometre_logs.count
+
+      bicycle.add_kilometres(50, "Bicycle ride")
+      chain.add_kilometres(25, "Chain wear")
+
+      expect(bicycle.kilometre_logs.count).to eq(bicycle_initial_count + 1)
+      expect(chain.kilometre_logs.count).to eq(chain_initial_count + 1)
+
+      bicycle_log = bicycle.kilometre_logs.where(notes: "Bicycle ride").first
+      chain_log = chain.kilometre_logs.where(notes: "Chain wear").first
+
+      expect(bicycle_log.notes).to eq("Bicycle ride")
+      expect(chain_log.notes).to eq("Chain wear")
+
+      expect(bicycle_log.trackable).to eq(bicycle)
+      expect(chain_log.trackable).to eq(chain)
+      expect(bicycle.kilometre_logs).not_to include(chain_log)
+      expect(chain.kilometre_logs).not_to include(bicycle_log)
     end
   end
 
   describe "edge cases" do
     it "handles very large kilometre values" do
-      # add_kilometres(999999.99)
+      result = trackable.add_kilometres(999999.99, "Epic journey")
 
-      # expect handles correctly without overflow
-      skip ("Waiting for the planets to align")
+      expect(result).to be true
+      expect(trackable.kilometres).to eq(1000099.99)
+      expect(trackable.kilometre_logs.last.new_value).to eq(1000099.99)
     end
 
     it "handles decimal kilometre values" do
-      # add_kilometres(10.5)
+      result = trackable.add_kilometres(10.5, "Precise ride")
 
-      # expect precise decimal handling
-      skip ("Waiting for the planets to align")
+      expect(result).to be true
+      expect(trackable.kilometres).to eq(110.5)
+      expect(trackable.kilometre_logs.last.new_value).to eq(110.5)
+
+      trackable.add_kilometres(0.1, "Short distance")
+      expect(trackable.kilometres).to eq(110.6)
     end
 
     it "handles concurrent updates gracefully" do
-      # simulate concurrent kilometres updates
+      original_count = trackable.kilometre_logs.count
 
-      # expect no data corruption or duplicate logs
-      skip ("Waiting for the planets to align")
+      trackable.update(kilometres: 150)
+      trackable.update(kilometres: 150)
+
+      expect(trackable.kilometre_logs.count).to eq(original_count + 1)
+
+      trackable.update(kilometres: 160)
+      expect(trackable.kilometre_logs.count).to eq(original_count + 2)
     end
   end
 end

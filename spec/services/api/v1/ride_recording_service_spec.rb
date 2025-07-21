@@ -3,6 +3,7 @@ require 'rails_helper'
 RSpec.describe Api::V1::RideRecordingService, type: :service do
   let(:user) { create(:user) }
   let(:bicycle) { create(:bicycle, user: user, kilometres: 0) }
+
   describe ".record" do
     it "successfully records ride with valid inputs" do
       chain = create(:chain, bicycle: bicycle, kilometres: 0)
@@ -65,13 +66,14 @@ RSpec.describe Api::V1::RideRecordingService, type: :service do
     end
 
     it "uses database transactions for atomicity" do
-      chain = create(:chain, bicycle: bicycle, kilometres: 0)
-      cassette = create(:cassette, bicycle: bicycle, kilometres: 0)
-      tire = create(:tire, bicycle: bicycle, kilometres: 0)
+      chain = create(:chain, bicycle: bicycle, kilometres: 0, status: "active")
+      cassette = create(:cassette, bicycle: bicycle, kilometres: 0, status: "active")
+      tire = create(:tire, bicycle: bicycle, kilometres: 0, status: "active")
 
+      allow(bicycle).to receive(:chain).and_return(chain)
       allow(chain).to receive(:add_kilometres).and_return(false)
       allow(chain).to receive(:errors).and_return(
-        double(full_messages: [ "Simulated failure" ])
+        double(full_messages: ["Simulated failure"])
       )
 
       expect {
@@ -90,10 +92,12 @@ RSpec.describe Api::V1::RideRecordingService, type: :service do
     end
 
     it "handles component update failures" do
-      chain = create(:chain, bicycle: bicycle, kilometres: 0)
+      chain = create(:chain, bicycle: bicycle, kilometres: 0, status: "active")
+
+      allow(bicycle).to receive(:chain).and_return(chain)
       allow(chain).to receive(:add_kilometres).and_return(false)
       allow(chain).to receive(:errors).and_return(
-        double(full_messages: [ "Brand can't be blank", "Kilometres must be positive" ])
+        double(full_messages: ["Brand can't be blank", "Kilometres must be positive"])
       )
 
       expect {

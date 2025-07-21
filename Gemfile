@@ -49,10 +49,10 @@ group :development, :test do
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
 
-  gem "rspec-rails", "~> 8.0.0"
+  gem "rspec-rails", "~> 8.0.1"
   gem "factory_bot_rails"
   gem "faker"
-    gem "pundit-matchers"
+  gem "pundit-matchers"
 end
 
 gem "active_model_serializers"
@@ -60,3 +60,7 @@ gem "devise"
 gem "devise-jwt"
 gem "pundit"
 gem "kaminari"
+
+group :test do
+  gem 'shoulda-matchers', '~> 6.0'
+end

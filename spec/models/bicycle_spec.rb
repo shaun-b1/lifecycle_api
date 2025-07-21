@@ -256,6 +256,9 @@ RSpec.describe Bicycle, type: :model do
       create(:brakepad, bicycle: bicycle, kilometres: 3600)
       create(:chainring, bicycle: bicycle, kilometres: 3600)
       create(:cassette, bicycle: bicycle, kilometres: 3600)
+
+      bicycle.reload
+
       partial_recommendations = bicycle.maintenance_recommendations
       expect(partial_recommendations).to eq([ "Chain needs replacement" ])
     end

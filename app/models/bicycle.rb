@@ -3,11 +3,18 @@ class Bicycle < ApplicationRecord
   include KilometreTrackable
 
   belongs_to :user
-  has_one :chain, dependent: :destroy
-  has_one :cassette, dependent: :destroy
-  has_one :chainring, dependent: :destroy
-  has_many :tires, dependent: :destroy
-  has_many :brakepads, dependent: :destroy
+
+  has_one :chain, -> { where(status: "active") }, dependent: :destroy
+  has_one :cassette, -> { where(status: "active") }, dependent: :destroy
+  has_one :chainring, -> { where(status: "active") }, dependent: :destroy
+  has_many :tires, -> { where(status: "active") }, dependent: :destroy
+  has_many :brakepads, -> { where(status: "active") }, dependent: :destroy
+
+  has_many :all_chains, class_name: "Chain"
+  has_many :all_cassettes, class_name: "Cassette"
+  has_many :all_chainrings, class_name: "Chainring"
+  has_many :all_tires, class_name: "Tire"
+  has_many :all_brakepads, class_name: "Brakepad"
 
   validates :name, presence: true
   validates :brand, presence: true
@@ -15,6 +22,46 @@ class Bicycle < ApplicationRecord
   validates :terrain, inclusion: { in: %w[flat hilly mountainous], allow_nil: true }
   validates :weather, inclusion: { in: %w[dry mixed wet], allow_nil: true }
   validates :particulate, inclusion: { in: %w[low medium high], allow_nil: true }
+
+  has_many :services, dependent: :destroy
+  has_many :component_replacements, through: :services
+  has_many :maintenance_actions, through: :services
+
+  def last_service
+    services.recent.first
+  end
+
+  def services_this_year
+    services.this_year
+  end
+
+  def component_replacement_history(component_type)
+    component_replacements.by_component(component_type).recent
+  end
+
+  def last_component_replacement(component_type)
+    component_replacement_history(component_type).first
+  end
+
+  def create_chain(attributes)
+    all_chains.create(attributes)
+  end
+
+  def create_cassette(attributes)
+    all_cassettes.create(attributes)
+  end
+
+  def create_chainring(attributes)
+    all_chainrings.create(attributes)
+  end
+
+  def create_tire(attributes)
+    all_tires.create(attributes)
+  end
+
+  def create_brakepad(attributes)
+    all_brakepads.create(attributes)
+  end
 
   def base_wear_limits
     {
