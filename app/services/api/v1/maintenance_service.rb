@@ -40,11 +40,6 @@ class Api::V1::MaintenanceService
   rescue Api::V1::Errors::ApiError => e
     raise e
   rescue => e
-    puts "ACTUAL ERROR: #{e.class} - #{e.message}"
-    puts "BACKTRACE: #{e.backtrace.first(5).join("\n")}"
-    Rails.logger.error("ACTUAL ERROR: #{e.class} - #{e.message}")
-    Rails.logger.error("BACKTRACE: #{e.backtrace.join("\n")}")
-
     Rails.logger.error("Failed to record maintenance: #{e.message}")
     Rails.logger.error(e.backtrace.join("\n"))
 
