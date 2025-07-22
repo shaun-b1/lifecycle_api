@@ -98,9 +98,7 @@ jobs:
         env:
           RAILS_ENV: test
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/lifecycle_api_test
-        run: |
-          bin/rails db:create
-          bin/rails db:schema:load
+        run: bin/rails db:setup
 
       - name: Run tests
         env:
