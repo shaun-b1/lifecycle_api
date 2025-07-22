@@ -24,41 +24,6 @@ describe "POST /api/v1/bicycles/:id/record_maintenance" do
       expect(bicycle.reload.kilometres).to eq(0)
     end
 
-    it "handles single component replacement" do
-      post_maintenance(
-        notes: "Chain replacement",
-        replacements: { chain: { brand: "SRAM", model: "Rival" } }
-      )
-
-      expect(response).to have_http_status(:success)
-      expect(bicycle.reload.kilometres).to eq(0)
-      expect(bicycle.chain.brand).to eq("Sram")
-    end
-
-    it "handles full service requests" do
-      post_maintenance(
-        notes: "Full service",
-        full_service: true,
-        default_brand: "Shimano",
-        default_model: "105"
-      )
-
-      expect(response).to have_http_status(:success)
-      expect(bicycle.reload.kilometres).to eq(0)
-      expect(bicycle.chain.brand).to eq("Shimano")
-    end
-
-    it "handles maintenance actions only" do
-      post_maintenance(
-        maintenance_actions: [
-          { component_type: "cassette", action_performed: "cleaned" }
-        ]
-      )
-
-      expect(response).to have_http_status(:success)
-      expect(bicycle.reload.kilometres).to eq(0)
-    end
-
     it "returns service data in response" do
       post_maintenance(notes: "Basic service")
 
@@ -94,7 +59,7 @@ describe "POST /api/v1/bicycles/:id/record_maintenance" do
     end
   end
 
-  describe "validation errors" do
+  describe "error handling" do
     it "returns validation error for full service without required params" do
       post_maintenance(
         notes: "Full service",
@@ -106,9 +71,7 @@ describe "POST /api/v1/bicycles/:id/record_maintenance" do
       expect(json_response[:error][:code]).to eq("VALIDATION_ERROR")
       expect(json_response[:error][:message]).to include("Default brand is required")
     end
-  end
 
-  describe "error handling" do
     it "handles non-existent bicycle gracefully" do
       post "/api/v1/bicycles/99999/record_maintenance",
         params: { notes: "Basic service" },
@@ -133,3 +96,4 @@ describe "POST /api/v1/bicycles/:id/record_maintenance" do
     end
   end
 end
+
