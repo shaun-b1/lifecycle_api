@@ -1,7 +1,8 @@
 class KilometreLog < ApplicationRecord
   belongs_to :trackable, polymorphic: true
 
-  validates :event_type, presence: true,
+  validates :event_type,
+    presence: true,
     inclusion: { in: %w[increase decrease maintenance reset] }
   validates :previous_value, :new_value, numericality: { greater_than_or_equal_to: 0 }
 

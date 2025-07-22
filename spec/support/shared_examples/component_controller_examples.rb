@@ -28,16 +28,16 @@ RSpec.shared_examples "a component controller" do |component_type|
       it "creates a component for user's bicycle" do
         expect {
           post :create,
-               params: { bicycle_id: bicycle.id, component_type => valid_attributes },
-               format: :json
+            params: { :bicycle_id => bicycle.id, component_type => valid_attributes },
+            format: :json
         }.to change(component_type.to_s.classify.constantize, :count).by(1)
         expect(response).to have_http_status(:created)
       end
 
       it "returns forbidden when creating for other user's bicycle" do
         post :create,
-             params: { bicycle_id: other_bicycle.id, component_type => valid_attributes },
-             format: :json
+          params: { :bicycle_id => other_bicycle.id, component_type => valid_attributes },
+          format: :json
         expect(response).to have_http_status(:forbidden)
       end
     end
@@ -47,16 +47,20 @@ RSpec.shared_examples "a component controller" do |component_type|
 
       it "updates user's own component" do
         patch :update,
-              params: { bicycle_id: bicycle.id, id: component.id, component_type => new_attributes },
-              format: :json
+          params: { :bicycle_id => bicycle.id, :id => component.id,
+                    component_type => new_attributes
+},
+          format: :json
         expect(response).to have_http_status(:success)
         expect(component.reload.brand).to eq("New Brand")
       end
 
       it "returns forbidden for other user's component" do
         patch :update,
-              params: { bicycle_id: other_bicycle.id, id: other_component.id, component_type => new_attributes },
-              format: :json
+          params: { :bicycle_id => other_bicycle.id, :id => other_component.id,
+                    component_type => new_attributes
+},
+          format: :json
         expect(response).to have_http_status(:forbidden)
       end
     end
@@ -71,7 +75,9 @@ RSpec.shared_examples "a component controller" do |component_type|
       end
 
       it "returns forbidden for other user's component" do
-        delete :destroy, params: { bicycle_id: other_bicycle.id, id: other_component.id }, format: :json
+        delete :destroy,
+          params: { bicycle_id: other_bicycle.id, id: other_component.id },
+          format: :json
         expect(response).to have_http_status(:forbidden)
       end
     end

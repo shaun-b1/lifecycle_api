@@ -1,4 +1,4 @@
-class RideRecordingService
+class Api::V1::RideRecordingService
   def self.record(bicycle, distance, notes = nil)
     if distance <= 0
       raise Api::V1::Errors::ValidationError.new(
@@ -16,17 +16,25 @@ class RideRecordingService
 
       unless bicycle_updated
         raise Api::V1::Errors::ValidationError.new(
-          "Failed to update bicycle kilometers",
+          "Failed to update bicycle kilometres",
           bicycle.errors.full_messages
         )
       end
 
-      [ bicycle.chain, bicycle.chainring, bicycle.cassette, *bicycle.tires, *bicycle.brakepads ].compact.each do |component|
+      active_components = [
+        bicycle.chain,
+        bicycle.chainring,
+        bicycle.cassette,
+        *bicycle.tires,
+        *bicycle.brakepads
+      ].compact
+
+      active_components.each do |component|
         component_updated = component.add_kilometres(distance, "Component distance updated from bicycle ride")
 
         unless component_updated
           raise Api::V1::Errors::ValidationError.new(
-            "Failed to update #{component.class.name.downcase} kilometers",
+            "Failed to update #{component.class.name.downcase} kilometres",
             component.errors.full_messages
           )
         end

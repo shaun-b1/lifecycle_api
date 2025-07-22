@@ -52,7 +52,7 @@ group :development, :test do
   gem "rspec-rails", "~> 8.0.1"
   gem "factory_bot_rails"
   gem "faker"
-    gem "pundit-matchers"
+  gem "pundit-matchers"
 end
 
 gem "active_model_serializers"
@@ -60,3 +60,7 @@ gem "devise"
 gem "devise-jwt"
 gem "pundit"
 gem "kaminari"
+
+group :test do
+  gem "shoulda-matchers", "~> 6.0"
+end

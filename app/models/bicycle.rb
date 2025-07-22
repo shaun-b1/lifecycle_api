@@ -3,11 +3,18 @@ class Bicycle < ApplicationRecord
   include KilometreTrackable
 
   belongs_to :user
-  has_one :chain, dependent: :destroy
-  has_one :cassette, dependent: :destroy
-  has_one :chainring, dependent: :destroy
-  has_many :tires, dependent: :destroy
-  has_many :brakepads, dependent: :destroy
+
+  has_one :chain, -> { where(status: "active") }, dependent: :destroy
+  has_one :cassette, -> { where(status: "active") }, dependent: :destroy
+  has_one :chainring, -> { where(status: "active") }, dependent: :destroy
+  has_many :tires, -> { where(status: "active") }, dependent: :destroy
+  has_many :brakepads, -> { where(status: "active") }, dependent: :destroy
+
+  has_many :all_chains, class_name: "Chain"
+  has_many :all_cassettes, class_name: "Cassette"
+  has_many :all_chainrings, class_name: "Chainring"
+  has_many :all_tires, class_name: "Tire"
+  has_many :all_brakepads, class_name: "Brakepad"
 
   validates :name, presence: true
   validates :brand, presence: true
@@ -16,13 +23,53 @@ class Bicycle < ApplicationRecord
   validates :weather, inclusion: { in: %w[dry mixed wet], allow_nil: true }
   validates :particulate, inclusion: { in: %w[low medium high], allow_nil: true }
 
+  has_many :services, dependent: :destroy
+  has_many :component_replacements, through: :services
+  has_many :maintenance_actions, through: :services
+
+  def last_service
+    services.recent.first
+  end
+
+  def services_this_year
+    services.this_year
+  end
+
+  def component_replacement_history(component_type)
+    component_replacements.by_component(component_type).recent
+  end
+
+  def last_component_replacement(component_type)
+    component_replacement_history(component_type).first
+  end
+
+  def create_chain(attributes)
+    all_chains.create(attributes)
+  end
+
+  def create_cassette(attributes)
+    all_cassettes.create(attributes)
+  end
+
+  def create_chainring(attributes)
+    all_chainrings.create(attributes)
+  end
+
+  def create_tire(attributes)
+    all_tires.create(attributes)
+  end
+
+  def create_brakepad(attributes)
+    all_brakepads.create(attributes)
+  end
+
   def base_wear_limits
     {
-    chain: 3500,
-    cassette: 10000,
-    chainring: 18000,
-    tire: 5500,
-    brakepad: 4000
+      chain: 3500,
+      cassette: 10000,
+      chainring: 18000,
+      tire: 5500,
+      brakepad: 4000
     }
   end
 
@@ -40,7 +87,7 @@ class Bicycle < ApplicationRecord
       multipliers[:chain] *= 1.4
       multipliers[:cassette] *= 1.6
       multipliers[:chainring] *= 1.4
-      multipliers[:tire] *= 1.3
+      multipliers[:tire] *= 1.2
       multipliers[:brakepad] *= 2.0
     end
 
@@ -62,12 +109,12 @@ class Bicycle < ApplicationRecord
       multipliers[:chain] *= 1.3
       multipliers[:cassette] *= 1.2
       multipliers[:chainring] *= 1.1
-      multipliers[:tire] *= 1.2
+      multipliers[:tire] *= 1.1
     when "high"
       multipliers[:chain] *= 1.6
       multipliers[:cassette] *= 1.4
       multipliers[:chainring] *= 1.3
-      multipliers[:tire] *= 1.4
+      multipliers[:tire] *= 1.2
       multipliers[:brakepad] *= 1.3
     end
 

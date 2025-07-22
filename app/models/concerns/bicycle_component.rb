@@ -4,11 +4,14 @@ module BicycleComponent
   included do
     include KilometreValidatable
     include KilometreTrackable
-    inlcude ComponentValidatable
+    include ComponentValidatable
 
     belongs_to :bicycle
     validates :bicycle, presence: true
     validate :validate_component_limit
+
+    scope :active, -> { where(status: "active") }
+    scope :replaced, -> { where(status: "replaced") }
   end
 
   class_methods do
@@ -21,10 +24,18 @@ module BicycleComponent
     end
   end
 
-  def replace_component(new_brand, reset_kilometres = true)
+  def replace_component(new_brand, new_model, reset_kilometres = true)
     self.brand = new_brand
+    self.model = new_model
     self.kilometres = 0 if reset_kilometres
     save
+  end
+
+  def retire_component(reason = nil)
+    update(
+      status: "replaced",
+      replaced_at: Time.current,
+    )
   end
 
   private
@@ -32,12 +43,15 @@ module BicycleComponent
   def validate_component_limit
     return unless bicycle
 
-    existing = self.class.where(bicycle: bicycle)
+    existing = self.class.where(bicycle: bicycle, status: "active")
     existing = existing.where.not(id: id) if persisted?
 
     if existing.count >= self.class.max_components
       component_name = self.class.name.underscore.humanize.downcase
-      errors.add(:bicycle_id, "already has #{existing.count == 1 ? 'a' : self.class.max_components} #{component_name}#{existing.count == 1 ? '' : 's'}")
+      count_description = existing.count == 1 ? "a" : self.class.max_components
+      plural_suffix = existing.count == 1 ? "" : "s"
+
+      errors.add(:bicycle_id, "already has #{count_description} #{component_name}#{plural_suffix}")
     end
   end
 end
