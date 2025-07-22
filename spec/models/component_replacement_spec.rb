@@ -80,7 +80,7 @@ RSpec.describe ComponentReplacement, type: :model do
   describe "instance methods" do
     describe "#old_kilometres" do
       it "returns kilometres from old_component_specs hash" do
-        component_replacement.old_component_specs = { brand: "Old", kilometres: 2500}
+        component_replacement.old_component_specs = { brand: "Old", kilometres: 2500 }
 
         expect(component_replacement.old_kilometres).to eq(2500)
       end
@@ -130,7 +130,7 @@ RSpec.describe ComponentReplacement, type: :model do
       end
 
       it "handles array format old_component_specs" do
-        component_replacement.old_component_specs = [{ brand: "Shimano" }]
+        component_replacement.old_component_specs = [ { brand: "Shimano" } ]
         component_replacement.new_component_specs = { brand: "SRAM" }
 
         expect(component_replacement.brand_changed?).to be true
@@ -163,8 +163,8 @@ RSpec.describe ComponentReplacement, type: :model do
 
       it "handles array format specs" do
         component_replacement.component_type = "tire"
-        component_replacement.old_component_specs = [{ brand: "Continental" }]
-        component_replacement.new_component_specs = [{ brand: "Michelin" }]
+        component_replacement.old_component_specs = [ { brand: "Continental" } ]
+        component_replacement.new_component_specs = [ { brand: "Michelin" } ]
 
         expect(component_replacement.replacement_summary).to eq("Tire: Continental → Michelin")
       end

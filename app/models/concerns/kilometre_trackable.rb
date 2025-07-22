@@ -50,10 +50,10 @@ module KilometreTrackable
 
   def extract_kilometre_values
     if maintenance_mode && !saved_change_to_kilometres?
-      [kilometres, kilometres]
+      [ kilometres, kilometres ]
     else
       old_value, new_value = saved_change_to_kilometres
-      [(old_value || 0), (new_value || 0)]
+      [ (old_value || 0), (new_value || 0) ]
     end
   end
 

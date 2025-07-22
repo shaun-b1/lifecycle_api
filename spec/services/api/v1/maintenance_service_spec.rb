@@ -448,7 +448,7 @@ RSpec.describe Api::V1::MaintenanceService do
         request_time = Time.current
         described_class.record_maintenance(bicycle, {
           notes: "Basic service",
-          maintenance_actions: [{ component_type: "chain", action_performed: "cleaned" }]
+          maintenance_actions: [ { component_type: "chain", action_performed: "cleaned" } ]
         })
 
         service = Service.last

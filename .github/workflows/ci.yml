@@ -106,4 +106,4 @@ jobs:
         env:
           RAILS_ENV: test
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/lifecycle_api_test
-        run: bin/rails test
+        run: bundle exec rspec

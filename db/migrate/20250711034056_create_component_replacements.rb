@@ -11,7 +11,7 @@ class CreateComponentReplacements < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :component_replacements, [:service_id, :component_type]
+    add_index :component_replacements, [ :service_id, :component_type ]
     add_index :component_replacements, :component_type
   end
 end

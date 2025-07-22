@@ -62,5 +62,5 @@ gem "pundit"
 gem "kaminari"
 
 group :test do
-  gem 'shoulda-matchers', '~> 6.0'
+  gem "shoulda-matchers", "~> 6.0"
 end

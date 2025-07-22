@@ -9,15 +9,15 @@ class ComponentReplacement < ApplicationRecord
   validates :new_component_specs, presence: true
 
   scope :by_component, ->(type) { where(component_type: type) }
-  scope :recent, -> { joins(:service).order('services.performed_at DESC') }
+  scope :recent, -> { joins(:service).order("services.performed_at DESC") }
 
   def old_kilometres
     return 0 unless old_component_specs
 
     if old_component_specs.is_a?(Array)
-      old_component_specs.map { |spec| spec['kilometres'] || 0 }.max
+      old_component_specs.map { |spec| spec["kilometres"] || 0 }.max
     else
-      old_component_specs['kilometres'] || 0
+      old_component_specs["kilometres"] || 0
     end
   end
 
@@ -39,9 +39,9 @@ class ComponentReplacement < ApplicationRecord
     return "Unknown" unless specs
 
     if specs.is_a?(Array)
-      specs.first&.dig('brand') || "Unknown"
+      specs.first&.dig("brand") || "Unknown"
     else
-      specs['brand'] || "Unknown"
+      specs["brand"] || "Unknown"
     end
   end
 end

@@ -1,11 +1,9 @@
 require 'rails_helper'
 
 RSpec.describe User, type: :model do
-
   let(:user) { build(:user) }
 
   describe "validations" do
-
     describe "name validation" do
       it "user with name is valid" do
         expect(user).to be_valid
@@ -21,9 +19,7 @@ RSpec.describe User, type: :model do
     end
 
     describe "email validation" do
-
       describe "presence" do
-
         it "user with email is valid" do
           expect(user).to be_valid
         end
@@ -43,7 +39,7 @@ RSpec.describe User, type: :model do
           should allow_values("test@example.com", "user.name@domain.co.uk").for(:email)
         end
         it "denies invalid email formats" do
-          should_not allow_values( "invalid", "test@", "@example.com", "test space@example.com", "test@.com" )
+          should_not allow_values("invalid", "test@", "@example.com", "test space@example.com", "test@.com")
             .for(:email)
         end
       end
@@ -66,7 +62,6 @@ RSpec.describe User, type: :model do
     end
 
     describe "password validation" do
-
       describe "presence" do
         it "new user with password is valid" do
           expect(user).to be_valid
@@ -129,78 +124,60 @@ RSpec.describe User, type: :model do
   end
 
   describe "devise integration" do
-
-    describe "JWT authentication" do
-      it "should include Devise" do
-        should be_kind_of(Devise::JWT::RevocationStrategies::JTIMatcher)
-      end
-      it "should respond to jti" do
+    describe "JWT authentication and token management" do
+      it "responds to jti field" do
         expect(user).to respond_to(:jti)
       end
-      it "should automatically generate jti" do
+
+      it "automatically generates jti on user creation" do
         user = create(:user)
         expect(user.jti).to be_present
         expect(user.jti).not_to be_nil
       end
-    end
 
-    describe "password authentication" do
-      # Test password authentication works
-      it "authenticates a user with the correct password" do
-        skip("waiting for the stars to align")
-        # - user with correct password should authenticate
-      end
-      it "does not authenticate a user with an incorrect password" do
-        skip("waiting for the stars to align")
-        # - user with incorrect password should not authenticate
-      end
-      it "uses devise's valid_password? method" do
-        skip("waiting for the stars to align")
-        # - use devise's valid_password? method
-      end
-    end
-
-    describe "token revocation" do
-      # Test JWT token revocation strategy
-      it "should have a jti field" do
-        skip("waiting for the stars to align")
-        # - user should have jti field
-      end
-      it "invalidates existing tokens if jti changes" do
-        skip("waiting for the stars to align")
-        # - changing jti should invalidate existing tokens
-      end
-      it "jti should be unique" do
-        skip("waiting for the stars to align")
-      # - jti should be unique per user
-      end
-    end
-  end
-
- describe "JWT token handling" do
-
-    describe "jti field" do
-      it "generates jti automatically for new users" do
-        skip("waiting for the stars to align")
-        # - new user should have jti generated automatically
+      it "generates unique jti values for different users" do
+        user1 = create(:user)
+        user2 = create(:user)
+        expect(user1.jti).not_to eq(user2.jti)
       end
 
       it "jti is valid UUID format" do
-        skip("waiting for the stars to align")
-        # - jti should be a valid UUID format
+        user = create(:user)
+        uuid_pattern = /\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/i
+        expect(user.jti).to match(uuid_pattern)
       end
 
-      it "jti is unique across users" do
+      it "includes Devise JWT revocation strategy" do
+        expect(user).to be_kind_of(Devise::JWT::RevocationStrategies::JTIMatcher)
+      end
+
+      it "jti changes invalidate existing tokens (token revocation behavior)" do
         skip("waiting for the stars to align")
-        # - jti should be unique across users
+        # - Test that changing jti invalidates existing tokens
+        # - This would require integration with JWT token generation/validation
+        # - May be better tested at integration level rather than unit level
       end
     end
 
-    describe "token uniqueness" do
-      it "each user has different jti values" do
-        skip("waiting for the stars to align")
-        # - create multiple users
-        # - each should have different jti values
+    describe "password authentication" do
+      it "authenticates user with correct password" do
+        user = create(:user, password: "testpassword123", password_confirmation: "testpassword123")
+        expect(user.valid_password?("testpassword123")).to be true
+      end
+
+      it "rejects authentication with incorrect password" do
+        user = create(:user, password: "testpassword123", password_confirmation: "testpassword123")
+        expect(user.valid_password?("wrongpassword")).to be false
+      end
+
+      it "rejects authentication with nil password" do
+        user = create(:user, password: "testpassword123", password_confirmation: "testpassword123")
+        expect(user.valid_password?(nil)).to be false
+      end
+
+      it "rejects authentication with empty password" do
+        user = create(:user, password: "testpassword123", password_confirmation: "testpassword123")
+        expect(user.valid_password?("")).to be false
       end
     end
   end
@@ -219,39 +196,84 @@ RSpec.describe User, type: :model do
   end
 
   describe "#password_required?" do
-
     describe "for new records" do
       it "requires password for new users" do
-        skip("waiting for the stars to align")
-        # - new user (not persisted) should require password
-        # - build(:user).password_required? should be true
+        user = build(:user)
+        expect(user.send(:password_required?)).to be true
+      end
+
+      it "requires password even for new users without password set" do
+        user = User.new(name: "Test User", email: "test@example.com")
+        expect(user.send(:password_required?)).to be true
       end
     end
 
     describe "for existing records" do
       it "does not require password for non-password updates" do
-        skip("waiting for the stars to align")
-        # - saved user without password change should not require password
-        # - user.password_required? should be false when no password change
+        user = create(:user)
+
+        user.password = nil
+        user.password_confirmation = nil
+
+        user.name = "Updated Name"
+        expect(user.send(:password_required?)).to be false
+      end
+
+      it "does not require password when no password fields are being changed" do
+        user = create(:user)
+
+        user.password = nil
+        user.password_confirmation = nil
+
+        expect(user.send(:password_required?)).to be false
       end
     end
 
     describe "when changing password" do
       it "requires password when setting new password" do
-        skip("waiting for the stars to align")
-        # - existing user with new password should require password
+        user = create(:user)
+
+        user.password = "newpassword123"
+        expect(user.send(:password_required?)).to be true
       end
 
       it "requires password when setting password confirmation" do
-        skip("waiting for the stars to align")
-        # - existing user with new password_confirmation should require password
+        user = create(:user)
+
+        user.password_confirmation = "somepassword"
+        expect(user.send(:password_required?)).to be true
+      end
+
+      it "requires password when setting both password and confirmation" do
+        user = create(:user)
+
+        user.password = "newpassword123"
+        user.password_confirmation = "newpassword123"
+        expect(user.send(:password_required?)).to be true
       end
     end
 
-    describe "when changing password_confirmation" do
-      it "requires password when only confirmation changes" do
-        skip("waiting for the stars to align")
-        # - existing user with only password_confirmation change should require password
+    describe "edge cases" do
+      it "requires password when only password_confirmation is set (no password)" do
+        user = create(:user)
+
+        user.password = nil
+        user.password_confirmation = "somepassword"
+        expect(user.send(:password_required?)).to be true
+      end
+
+      it "requires password when password is set to empty string" do
+        user = create(:user)
+
+        user.password = ""
+        expect(user.send(:password_required?)).to be true
+      end
+
+      it "requires password when password_confirmation is set to empty string" do
+        user = create(:user)
+
+        user.password_confirmation = ""
+        expect(user.send(:password_required?)).to be true
       end
     end
   end
@@ -274,7 +296,6 @@ RSpec.describe User, type: :model do
   end
 
   describe "edge cases" do
-
     describe "email normalization" do
       it "stores emails in lowercase" do
         skip("waiting for the stars to align")
@@ -307,36 +328,4 @@ RSpec.describe User, type: :model do
       end
     end
   end
-
-  # HELPER METHODS
-  # - def valid_user_attributes - return hash of valid attributes
-  # - def user_with_email(email) - create user with specific email
-  # - def authenticate_user(user, password) - test authentication helper
 end
-
-# TESTING STRATEGY NOTES:
-#
-# 1. VALIDATION TESTS
-#    - Test each validation rule independently
-#    - Test both valid and invalid cases
-#    - Use specific error message expectations where important
-#
-# 2. ASSOCIATION TESTS
-#    - Test relationship exists
-#    - Test dependent destroy behavior
-#    - Don't test ActiveRecord internals, test your business logic
-#
-# 3. DEVISE INTEGRATION
-#    - Test that devise features work without testing devise internals
-#    - Focus on your custom configuration (JWT, revocation strategy)
-#    - Test authentication at model level, not request level
-#
-# 4. CUSTOM METHODS
-#    - Test password_required? logic thoroughly
-#    - Test all conditional branches
-#    - Use real scenarios (new user, existing user, password change)
-#
-# 5. EDGE CASES
-#    - Test case insensitivity actually works
-#    - Test database constraints
-#    - Test factory validity

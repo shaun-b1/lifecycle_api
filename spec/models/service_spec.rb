@@ -40,7 +40,7 @@ RSpec.describe Service, type: :model do
     end
 
     it "accepts valid service_types" do
-      valid_types = ["full_service", "partial_replacement", "tune_up", "emergency_repair", "inspection"]
+      valid_types = [ "full_service", "partial_replacement", "tune_up", "emergency_repair", "inspection" ]
 
       valid_types.each do |type|
         test_service = build(:service, bicycle: bicycle, service_type: type)
@@ -108,7 +108,7 @@ RSpec.describe Service, type: :model do
         create(:component_replacement, service: service, component_type: "tire")
 
         result = service.components_replaced
-        expect(result).to eq(["tire"])
+        expect(result).to eq([ "tire" ])
       end
 
       it "returns empty array when no replacements exist" do

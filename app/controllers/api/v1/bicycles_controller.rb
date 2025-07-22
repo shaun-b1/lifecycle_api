@@ -35,7 +35,7 @@ class Api::V1::BicyclesController < ApplicationController
       response = Api::V1::ResponseService.success(
         ActiveModelSerializers::SerializableResource.new(
           service,
-          include: [:component_replacements, :maintenance_actions]
+          include: [ :component_replacements, :maintenance_actions ]
         ).as_json,
         "Maintenance recorded successfully"
       )

@@ -9,7 +9,7 @@ class AddServicesTable < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :services, [:bicycle_id, :performed_at]
+    add_index :services, [ :bicycle_id, :performed_at ]
     add_index :services, :service_type
     add_index :services, :performed_at
   end

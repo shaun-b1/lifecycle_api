@@ -73,7 +73,7 @@ RSpec.describe Api::V1::RideRecordingService, type: :service do
       allow(bicycle).to receive(:chain).and_return(chain)
       allow(chain).to receive(:add_kilometres).and_return(false)
       allow(chain).to receive(:errors).and_return(
-        double(full_messages: ["Simulated failure"])
+        double(full_messages: [ "Simulated failure" ])
       )
 
       expect {
@@ -97,7 +97,7 @@ RSpec.describe Api::V1::RideRecordingService, type: :service do
       allow(bicycle).to receive(:chain).and_return(chain)
       allow(chain).to receive(:add_kilometres).and_return(false)
       allow(chain).to receive(:errors).and_return(
-        double(full_messages: ["Brand can't be blank", "Kilometres must be positive"])
+        double(full_messages: [ "Brand can't be blank", "Kilometres must be positive" ])
       )
 
       expect {
