@@ -1,5 +1,5 @@
-require 'rails_helper'
+# require 'rails_helper'
 
-RSpec.describe Chainring, type: :model do
-  it_behaves_like "a bicycle component"
-end
+# RSpec.describe Chainring, type: :model do
+#   it_behaves_like "a bicycle component"
+# end

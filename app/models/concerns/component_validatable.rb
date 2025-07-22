@@ -16,6 +16,6 @@ module ComponentValidatable
   def normalize_brand_name
     return unless brand.present?
 
-    self.brand = brand.strip.squeeze(' ').titleize
+    self.brand = brand.strip.squeeze(" ").titleize
   end
 end

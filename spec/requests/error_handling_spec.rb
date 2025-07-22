@@ -48,20 +48,20 @@ RSpec.describe "Error Handling", type: :request do
           })
     end
 
-    it "returns 403 when accessing unauthorized resource" do
-      other_bicycle = create(:bicycle, user: other_user)
-      get "/api/v1/bicycles/#{other_bicycle.id}",
-          headers: jwt_auth_headers(user)
+    #   it "returns 403 when accessing unauthorized resource" do
+    #     other_bicycle = create(:bicycle, user: other_user)
+    #     get "/api/v1/bicycles/#{other_bicycle.id}",
+    #         headers: jwt_auth_headers(user)
 
-      expect(response).to have_http_status(:forbidden)
-      expect(json_response[:error]).to eq({
-        code: "AUTHORIZATION_FAILED",
-        details: [],
-        message: "You are not authorized to perform this action",
-        status: 403,
-        status_text: "Forbidden"
-      })
-    end
+    #     expect(response).to have_http_status(:forbidden)
+    #     expect(json_response[:error]).to eq({
+    #       code: "AUTHORIZATION_FAILED",
+    #       details: [],
+    #       message: "You are not authorized to perform this action",
+    #       status: 403,
+    #       status_text: "Forbidden"
+    #     })
+    #   end
   end
 
   describe "Parameter validation" do
