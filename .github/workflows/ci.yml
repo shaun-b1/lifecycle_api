@@ -98,10 +98,12 @@ jobs:
         env:
           RAILS_ENV: test
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/lifecycle_api_test
-        run: bin/rails db:setup
+        run: |
+          bin/rails db:create
+          bin/rails db:schema:load
 
       - name: Run tests
         env:
           RAILS_ENV: test
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/lifecycle_api_test
-        run: bin/rails test
+        run: bundle exec rspec
