@@ -1,7 +1,7 @@
 class User < ApplicationRecord
   include Devise::JWT::RevocationStrategies::JTIMatcher
 
-  has_many :bicycles, dependent: :destroy
+  has_many :bicycles, class_name: 'Api::V1::Bicycle', dependent: :destroy
 
   devise :database_authenticatable,
     :registerable,

@@ -2,6 +2,6 @@ class Api::V1::TiresController < Api::V1::ComponentsController
   private
 
   def component_class
-    Tire
+    Api::V1::Tire
   end
 end

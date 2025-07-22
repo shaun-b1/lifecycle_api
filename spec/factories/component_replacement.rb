@@ -1,5 +1,5 @@
 FactoryBot.define do
-  factory :component_replacement do
+  factory :component_replacement, class: 'Api::V1::ComponentReplacement' do
     association :service
     component_type { "chain" }
     old_component_specs { { brand: "Old Brand", model: "Old Model", kilometres: 1500 } }

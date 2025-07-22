@@ -2,6 +2,6 @@ class Api::V1::CassettesController < Api::V1::ComponentsController
   private
 
   def component_class
-    Cassette
+    Api::V1::Cassette
   end
 end

@@ -4,6 +4,6 @@ class Api::V1::ComponentSerializer < ActiveModel::Serializer
   attributes :id, :brand, :kilometres, :type
 
   def type
-    object.class.name.underscore
+    object.class.name.split('::').last.underscore
   end
 end

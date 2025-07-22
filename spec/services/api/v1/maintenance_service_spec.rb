@@ -28,7 +28,7 @@ RSpec.describe Api::V1::MaintenanceService do
 
       it "creates service record with correct attributes" do
         result
-        service = Service.last
+        service = Api::V1::Service.last
         expect(service).to have_attributes(
           bicycle: bicycle,
           notes: "Basic service",
@@ -37,11 +37,11 @@ RSpec.describe Api::V1::MaintenanceService do
       end
 
       it "does not create component replacement records" do
-        expect { result }.not_to change(ComponentReplacement, :count)
+        expect { result }.not_to change(Api::V1::ComponentReplacement, :count)
       end
 
       it "does not create maintenance action records" do
-        expect { result }.not_to change(MaintenanceAction, :count)
+        expect { result }.not_to change(Api::V1::MaintenanceAction, :count)
       end
 
       it "leaves all components unchanged" do
@@ -80,9 +80,9 @@ RSpec.describe Api::V1::MaintenanceService do
       end
 
       it "creates component replacement audit record" do
-        expect { result }.to change(ComponentReplacement, :count).by(1)
+        expect { result }.to change(Api::V1::ComponentReplacement, :count).by(1)
 
-        replacement = ComponentReplacement.by_component("chain").last
+        replacement = Api::V1::ComponentReplacement.by_component("chain").last
         expect(replacement).to have_attributes(
           component_type: "chain",
           new_component_specs: include("brand" => "SRAM", "model" => "Rival")
@@ -128,16 +128,16 @@ RSpec.describe Api::V1::MaintenanceService do
       end
 
       it "creates separate audit records for each component" do
-        expect { result }.to change(ComponentReplacement, :count).by(2)
+        expect { result }.to change(Api::V1::ComponentReplacement, :count).by(2)
 
-        expect(ComponentReplacement.by_component('chain')).to contain_exactly(
+        expect(Api::V1::ComponentReplacement.by_component('chain')).to contain_exactly(
           have_attributes(
             component_type: 'chain',
             new_component_specs: include('brand' => 'SRAM', 'model' => 'Rival')
           )
         )
 
-        expect(ComponentReplacement.by_component('cassette')).to contain_exactly(
+        expect(Api::V1::ComponentReplacement.by_component('cassette')).to contain_exactly(
           have_attributes(
             component_type: 'cassette',
             new_component_specs: include('brand' => 'SRAM', 'model' => 'Force')
@@ -185,9 +185,9 @@ RSpec.describe Api::V1::MaintenanceService do
         # Capture old specs BEFORE running the service
         expected_old_specs = transform_components_to_specs(tires)
 
-        expect { result }.to change(ComponentReplacement, :count).by(1)
+        expect { result }.to change(Api::V1::ComponentReplacement, :count).by(1)
 
-        replacement_record = ComponentReplacement.last
+        replacement_record = Api::V1::ComponentReplacement.last
         expected_new_specs = [
           { "brand" => "Michelin", "model" => "Power", "status" => "active" },
           { "brand" => "Michelin", "model" => "Power", "status" => "active" }
@@ -235,15 +235,15 @@ RSpec.describe Api::V1::MaintenanceService do
       end
 
       it "creates audit records for all component replacements" do
-        expect { result }.to change(ComponentReplacement, :count).by(5)
-        expect(ComponentReplacement.last(5).pluck(:component_type)).to contain_exactly(
+        expect { result }.to change(Api::V1::ComponentReplacement, :count).by(5)
+        expect(Api::V1::ComponentReplacement.last(5).pluck(:component_type)).to contain_exactly(
           "chain", "cassette", "chainring", "tire", "brakepad"
         )
       end
 
       it "sets service type to full_service" do
         result
-        expect(Service.last.service_type).to eq("full_service")
+        expect(Api::V1::Service.last.service_type).to eq("full_service")
       end
 
       describe "with component exceptions" do
@@ -285,8 +285,8 @@ RSpec.describe Api::V1::MaintenanceService do
       let(:result) { described_class.record_maintenance(bicycle, maintenance_action_params) }
 
       it "records maintenance actions without replacements" do
-        expect { result }.to change(MaintenanceAction, :count).by(2)
-        expect { result }.not_to change(ComponentReplacement, :count)
+        expect { result }.to change(Api::V1::MaintenanceAction, :count).by(2)
+        expect { result }.not_to change(Api::V1::ComponentReplacement, :count)
       end
 
       it "leaves components unchanged during maintenance actions" do
@@ -300,7 +300,7 @@ RSpec.describe Api::V1::MaintenanceService do
 
       it "creates service record for maintenance actions" do
         result
-        service = Service.last
+        service = Api::V1::Service.last
         expect(service.service_type).to eq("partial_replacement")
         expect(service.maintenance_actions.count).to eq(2)
       end
@@ -326,17 +326,17 @@ RSpec.describe Api::V1::MaintenanceService do
 
       it "handles cassette maintenance correctly" do
         result
-        maintenance_action = MaintenanceAction.by_component("cassette").last
+        maintenance_action = Api::V1::MaintenanceAction.by_component("cassette").last
         expect(maintenance_action.action_performed).to eq("cleaned and lubricated")
         expect(cassette.reload.kilometres).to eq(initial_cassette_km)
         expect(cassette.reload.status).to eq("active")
       end
 
       it "creates correct audit trail" do
-        expect { result }.to change(ComponentReplacement, :count).by(1)
-                                   .and change(MaintenanceAction, :count).by(1)
+        expect { result }.to change(Api::V1::ComponentReplacement, :count).by(1)
+                                   .and change(Api::V1::MaintenanceAction, :count).by(1)
 
-        service = Service.last
+        service = Api::V1::Service.last
         expect(service.component_replacements.count).to eq(1)
         expect(service.maintenance_actions.count).to eq(1)
         expect(service.component_replacements.first.component_type).to eq("chain")
@@ -373,14 +373,14 @@ RSpec.describe Api::V1::MaintenanceService do
     describe "error handling and rollback" do
       it "rolls back all changes on service failure" do
         initial_counts = {
-          chains: Chain.count,
-          services: Service.count,
-          component_replacements: ComponentReplacement.count,
-          maintenance_actions: MaintenanceAction.count
+          chains: Api::V1::Chain.count,
+          services: Api::V1::Service.count,
+          component_replacements: Api::V1::ComponentReplacement.count,
+          maintenance_actions: Api::V1::MaintenanceAction.count
         }
 
         # Mock a failure in the middle of the service
-        allow(ComponentReplacement).to receive(:create!)
+        allow(Api::V1::ComponentReplacement).to receive(:create!)
           .and_raise(StandardError.new("Simulated failure"))
 
         expect {
@@ -393,10 +393,10 @@ RSpec.describe Api::V1::MaintenanceService do
         }.to raise_error(Api::V1::Errors::ApiError, "An unexpected error occurred during maintenance")
 
         # Verify rollback
-        expect(Chain.count).to eq(initial_counts[:chains])
-        expect(Service.count).to eq(initial_counts[:services])
-        expect(ComponentReplacement.count).to eq(initial_counts[:component_replacements])
-        expect(MaintenanceAction.count).to eq(initial_counts[:maintenance_actions])
+        expect(Api::V1::Chain.count).to eq(initial_counts[:chains])
+        expect(Api::V1::Service.count).to eq(initial_counts[:services])
+        expect(Api::V1::ComponentReplacement.count).to eq(initial_counts[:component_replacements])
+        expect(Api::V1::MaintenanceAction.count).to eq(initial_counts[:maintenance_actions])
       end
     end
 
@@ -414,8 +414,8 @@ RSpec.describe Api::V1::MaintenanceService do
           }
         })
 
-        service = Service.last
-        ComponentReplacement.all.each do |replacement|
+        service = Api::V1::Service.last
+        Api::V1::ComponentReplacement.all.each do |replacement|
           expect(replacement.service_id).to eq(service.id)
         end
         expect(service.component_replacements.count).to eq(3)
@@ -434,8 +434,8 @@ RSpec.describe Api::V1::MaintenanceService do
           ]
         })
 
-        service = Service.last
-        MaintenanceAction.all.each do |action|
+        service = Api::V1::Service.last
+        Api::V1::MaintenanceAction.all.each do |action|
           expect(action.service_id).to eq(service.id)
         end
         expect(service.maintenance_actions.count).to eq(3)
@@ -451,7 +451,7 @@ RSpec.describe Api::V1::MaintenanceService do
           maintenance_actions: [ { component_type: "chain", action_performed: "cleaned" } ]
         })
 
-        service = Service.last
+        service = Api::V1::Service.last
         expect(service.performed_at).to be_within(1.second).of(request_time)
         expect(service.performed_at).to be_a(Time)
         expect(service.performed_at).to be <= Time.current
@@ -465,7 +465,7 @@ RSpec.describe Api::V1::MaintenanceService do
           replacements: { chain: { brand: "SRAM", model: "Force" } }
         })
 
-        replacement = ComponentReplacement.last
+        replacement = Api::V1::ComponentReplacement.last
         expect(replacement.old_component_specs).to eq(original_chain_data)
         expect(replacement.new_component_specs).to eq({
           "brand" => "SRAM", "model" => "Force", "status" => "active"

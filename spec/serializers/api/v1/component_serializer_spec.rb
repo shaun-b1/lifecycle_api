@@ -7,11 +7,11 @@ RSpec.describe Api::V1::ComponentSerializer do
   # Test each component type
   describe 'serialization' do
     component_types = {
-      chain: Chain,
-      cassette: Cassette,
-      chainring: Chainring,
-      tire: Tire,
-      brakepad: Brakepad
+      chain: Api::V1::Chain,
+      cassette: Api::V1::Cassette,
+      chainring: Api::V1::Chainring,
+      tire: Api::V1::Tire,
+      brakepad: Api::V1::Brakepad
     }
 
     component_types.each do |component_name, component_class|
@@ -26,7 +26,7 @@ RSpec.describe Api::V1::ComponentSerializer do
         end
 
         it 'returns the correct type' do
-          expect(serialized_component['type']).to eq(component_class.name.underscore)
+          expect(serialized_component['type']).to eq(component_class.name.split('::').last.underscore)
         end
       end
     end

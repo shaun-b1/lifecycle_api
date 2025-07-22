@@ -203,7 +203,7 @@ RSpec.describe User, type: :model do
       end
 
       it "requires password even for new users without password set" do
-        user = User.new(name: "Test User", email: "test@example.com")
+        user = ::User.new(name: "Test User", email: "test@example.com")
         expect(user.send(:password_required?)).to be true
       end
     end

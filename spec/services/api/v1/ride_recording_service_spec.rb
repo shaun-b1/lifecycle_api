@@ -25,7 +25,7 @@ RSpec.describe Api::V1::RideRecordingService, type: :service do
         .and change { tire2.reload.kilometres }.from(0).to(50.0)
         .and change { brake1.reload.kilometres }.from(0).to(50.0)
         .and change { brake2.reload.kilometres }.from(0).to(50.0)
-        .and change { KilometreLog.count }.by(8)
+        .and change { Api::V1::KilometreLog.count }.by(8)
       expect(result).to be true
     end
 
@@ -61,7 +61,7 @@ RSpec.describe Api::V1::RideRecordingService, type: :service do
         .and change { cassette.reload.kilometres }.from(0).to(50.0)
         .and change { tire1.reload.kilometres }.from(0).to(50.0)
         .and change { brake1.reload.kilometres }.from(0).to(50.0)
-        .and change { KilometreLog.count }.by(6)
+        .and change { Api::V1::KilometreLog.count }.by(6)
       expect(result).to be true
     end
 

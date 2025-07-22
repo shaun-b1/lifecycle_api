@@ -33,7 +33,7 @@ RSpec.shared_examples "a dual component controller" do |component_type|
               bicycle_id: bicycle.id
             }.merge({ component_param_key => valid_attributes }),
             format: :json
-        }.to change(component_type.to_s.classify.constantize, :count).by(1)
+        }.to change("Api::V1::#{component_type.to_s.classify}".constantize, :count).by(1)
 
         expect(response).to have_http_status(:created)
       end
@@ -45,7 +45,7 @@ RSpec.shared_examples "a dual component controller" do |component_type|
           post :create,
             params: { :bicycle_id => bicycle.id, component_type => valid_attributes },
             format: :json
-        }.to change(component_type.to_s.classify.constantize, :count).by(1)
+        }.to change("Api::V1::#{component_type.to_s.classify}".constantize, :count).by(1)
         expect(response).to have_http_status(:created)
       end
 
@@ -93,7 +93,7 @@ RSpec.shared_examples "a dual component controller" do |component_type|
         component # Create the component
         expect {
           delete :destroy, params: { bicycle_id: bicycle.id, id: component.id }, format: :json
-        }.to change(component_type.to_s.classify.constantize, :count).by(-1)
+        }.to change("Api::V1::#{component_type.to_s.classify}".constantize, :count).by(-1)
         expect(response).to have_http_status(:no_content)
       end
 

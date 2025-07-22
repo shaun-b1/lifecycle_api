@@ -1,2 +1,0 @@
-class TirePolicy < ComponentPolicy
-end

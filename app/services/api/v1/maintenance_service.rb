@@ -11,7 +11,7 @@ class Api::V1::MaintenanceService
     exceptions = options[:exceptions] || {}
 
     ActiveRecord::Base.transaction do
-      service = Service.create!(
+      service = Api::V1::Service.create!(
         bicycle: bicycle,
         performed_at: Time.current,
         service_type: full_service ? "full_service" : "partial_replacement",
@@ -106,7 +106,7 @@ class Api::V1::MaintenanceService
   def self.replace_single_component(bicycle, service, component_type, specs)
     old_component = bicycle.send(component_type)
 
-    ComponentReplacement.create!(
+    Api::V1::ComponentReplacement.create!(
       service: service,
       component_type: component_type,
       old_component_specs: old_component ? {
@@ -140,7 +140,7 @@ class Api::V1::MaintenanceService
   def self.replace_multiple_components(bicycle, service, component_type, specs_array)
     old_components = bicycle.send(component_type)
 
-    ComponentReplacement.create!(
+    Api::V1::ComponentReplacement.create!(
       service: service,
       component_type: component_type.singularize, # "tire" not "tires"
       old_component_specs: old_components.map do |component|
@@ -180,7 +180,7 @@ class Api::V1::MaintenanceService
     return if maintenance_actions.blank?
 
     maintenance_actions.each do |action|
-      MaintenanceAction.create!(
+      Api::V1::MaintenanceAction.create!(
         service: service,
         component_type: action[:component_type],
         action_performed: action[:action_performed]

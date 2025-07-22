@@ -34,7 +34,7 @@ class Api::V1::RideRecordingService
 
         unless component_updated
           raise Api::V1::Errors::ValidationError.new(
-            "Failed to update #{component.class.name.downcase} kilometres",
+            "Failed to update #{component.class.name.split('::').last.downcase} kilometres",
             component.errors.full_messages
           )
         end

@@ -1,5 +1,5 @@
 FactoryBot.define do
-  factory :bicycle do
+  factory :bicycle, class: 'Api::V1::Bicycle' do
     association :user
     name { "Bike #{Faker::Number.number(digits: 2)}" }
     brand { %w[Condor Ritchey Cannondale Specialized Trek].sample }

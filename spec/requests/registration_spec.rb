@@ -20,7 +20,7 @@ RSpec.describe "Registration", type: :request do
           post "/api/v1/register",
             params: valid_attributes,
             as: :json
-        }.to change(User, :count).by(1)
+        }.to change(::User, :count).by(1)
       end
 
       it "returns a created status" do
@@ -52,7 +52,7 @@ RSpec.describe "Registration", type: :request do
           post "/api/v1/register",
             params: invalid_attributes,
             as: :json
-        }.not_to change(User, :count)
+        }.not_to change(::User, :count)
 
         expect(json_response[:error]).to eq({
           code: "VALIDATION_ERROR",
@@ -71,7 +71,7 @@ RSpec.describe "Registration", type: :request do
           post "/api/v1/register",
             params: invalid_attributes,
             as: :json
-        }.not_to change(User, :count)
+        }.not_to change(::User, :count)
 
         expect(json_response[:error]).to eq({
           code: "VALIDATION_ERROR",
@@ -90,7 +90,7 @@ RSpec.describe "Registration", type: :request do
           post "/api/v1/register",
             params: invalid_attributes,
             as: :json
-        }.not_to change(User, :count)
+        }.not_to change(::User, :count)
 
         expect(json_response[:error]).to eq({
           code: "VALIDATION_ERROR",
@@ -110,7 +110,7 @@ RSpec.describe "Registration", type: :request do
           post "/api/v1/register",
             params: invalid_attributes,
             as: :json
-        }.not_to change(User, :count)
+        }.not_to change(::User, :count)
 
         expect(json_response[:error]).to eq({
           code: "VALIDATION_ERROR",
@@ -129,7 +129,7 @@ RSpec.describe "Registration", type: :request do
           post "/api/v1/register",
             params: invalid_attributes,
             as: :json
-        }.not_to change(User, :count)
+        }.not_to change(::User, :count)
 
         expect(json_response[:error]).to eq({
           code: "VALIDATION_ERROR",
@@ -147,7 +147,7 @@ RSpec.describe "Registration", type: :request do
           post "/api/v1/register",
             params: valid_attributes,
             as: :json
-        }.not_to change(User, :count)
+        }.not_to change(::User, :count)
 
         expect(json_response[:error]).to eq({
           code: "VALIDATION_ERROR",

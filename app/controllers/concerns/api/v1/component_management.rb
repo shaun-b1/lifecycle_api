@@ -70,7 +70,7 @@ module ::Api::V1::ComponentManagement
   private
 
   def set_bicycle
-    @bicycle = Bicycle.find(params[:bicycle_id])
+    @bicycle = Api::V1::Bicycle.find(params[:bicycle_id])
   rescue ActiveRecord::RecordNotFound
       raise Api::V1::Errors::ResourceNotFoundError.new(
         "Bicycle with ID #{params[:bicycle_id]} not found"
@@ -86,7 +86,7 @@ module ::Api::V1::ComponentManagement
   end
 
   def component_param_key
-    component_class.to_s.underscore
+    component_class.to_s.split('::').last.underscore
   end
 
   def set_component
@@ -99,19 +99,19 @@ module ::Api::V1::ComponentManagement
 
   def find_component
     if single_component?
-      component = @bicycle.send(component_class.to_s.underscore)
+      component = @bicycle.send(component_class.to_s.split('::').last.underscore)
       raise ActiveRecord::RecordNotFound unless component
       component
     else
-      @bicycle.send(component_class.to_s.pluralize.underscore).find(params[:id])
+      @bicycle.send(component_class.to_s.split('::').last.pluralize.underscore).find(params[:id])
     end
   end
 
   def build_component(attributes)
     if single_component?
-      @bicycle.send("build_#{component_class.to_s.underscore}", attributes)
+      @bicycle.send("build_#{component_class.to_s.split('::').last.underscore}", attributes)
     else
-      @bicycle.send(component_class.to_s.pluralize.underscore).build(attributes)
+      @bicycle.send(component_class.to_s.split('::').last.pluralize.underscore).build(attributes)
     end
   end
 
@@ -122,6 +122,6 @@ module ::Api::V1::ComponentManagement
   end
 
   def single_component?
-    @bicycle.respond_to?(component_class.to_s.underscore)
+    @bicycle.respond_to?(component_class.to_s.split('::').last.underscore)
   end
 end

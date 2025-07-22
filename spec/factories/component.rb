@@ -1,5 +1,5 @@
 FactoryBot.define do
-  factory :chain do
+  factory :chain, class: 'Api::V1::Chain' do
     association :bicycle
     brand { "Campagnolo" }
     model { "Chorus" }
@@ -7,7 +7,7 @@ FactoryBot.define do
     status { 'active' }
   end
 
-  factory :cassette do
+  factory :cassette, class: 'Api::V1::Cassette' do
     association :bicycle
     brand { "Campagnolo" }
     model { "Chorus" }
@@ -15,7 +15,7 @@ FactoryBot.define do
     status { 'active' }
   end
 
-  factory :chainring do
+  factory :chainring, class: 'Api::V1::Chainring' do
     association :bicycle
     brand { "Campagnolo" }
     model { "Chorus" }
@@ -23,7 +23,7 @@ FactoryBot.define do
     status { 'active' }
   end
 
-  factory :tire do
+  factory :tire, class: 'Api::V1::Tire' do
     association :bicycle
     brand { "Continental" }
     model { "GP5000" }
@@ -31,7 +31,7 @@ FactoryBot.define do
     status { 'active' }
   end
 
-  factory :brakepad do
+  factory :brakepad, class: 'Api::V1::Brakepad' do
     association :bicycle
     brand { "Campagnolo" }
     model { "Chorus" }

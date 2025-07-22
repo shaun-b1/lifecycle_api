@@ -49,7 +49,7 @@ class Api::V1::BicyclesController < ApplicationController
   private
 
   def resource_class
-    Bicycle
+    Api::V1::Bicycle
   end
 
   def resource_serializer

@@ -10,7 +10,7 @@ module Api::V1::CrudOperations
 
     response_data = Api::V1::ResponseService.paginated(
       @resources,
-      { resource_type: resource_class.name.pluralize }
+      { resource_type: resource_class.name.split('::').last.pluralize }
     )
 
     response_data[:json][:data] = ActiveModelSerializers::SerializableResource.new(
@@ -27,7 +27,7 @@ module Api::V1::CrudOperations
     response = Api::V1::ResponseService.success(
       ActiveModelSerializers::SerializableResource.new(@resource,
         serializer: resource_serializer).as_json,
-      "#{resource_class.name} retrieved successfully"
+      "#{resource_class.name.split('::').last} retrieved successfully"
     )
 
     render response
@@ -41,12 +41,12 @@ module Api::V1::CrudOperations
       response_data = Api::V1::ResponseService.created(
         ActiveModelSerializers::SerializableResource.new(@resource,
           serializer: resource_serializer).as_json,
-        "#{resource_class.name} created successfully"
+        "#{resource_class.name.split('::').last} created successfully"
       )
       render response_data
     else
       raise Api::V1::Errors::ValidationError.new(
-        "Failed to create #{resource_class.name.downcase}",
+        "Failed to create #{resource_class.name.split('::').last.downcase}",
         @resource.errors.full_messages
       )
     end
@@ -59,12 +59,12 @@ module Api::V1::CrudOperations
      response_data = Api::V1::ResponseService.updated(
        ActiveModelSerializers::SerializableResource.new(@resource,
          serializer: resource_serializer).as_json,
-       "#{resource_class.name} updated successfully"
+       "#{resource_class.name.split('::').last} updated successfully"
       )
       render response_data
     else
       raise Api::V1::Errors::ValidationError.new(
-        "Failed to update #{resource_class.name.downcase}",
+        "Failed to update #{resource_class.name.split('::').last.downcase}",
         @resource.errors.full_messages
       )
     end
@@ -75,7 +75,7 @@ module Api::V1::CrudOperations
     @resource.destroy
 
     response_data = Api::V1::ResponseService.deleted(
-      "#{resource_class.name} deleted successfully"
+      "#{resource_class.name.split('::').last} deleted successfully"
     )
     render response_data
   end
@@ -97,7 +97,7 @@ module Api::V1::CrudOperations
   def set_resource
     @resource = find_resource
     rescue ActiveRecord::RecordNotFound
-      raise Api::V1::Errors::ResourceNotFoundError.new(resource_class.name)
+      raise Api::V1::Errors::ResourceNotFoundError.new(resource_class.name.split('::').last)
   end
 
   def find_resource
